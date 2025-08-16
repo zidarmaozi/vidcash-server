@@ -15,6 +15,7 @@ class DashboardStats extends BaseWidget
     protected function getStats(): array
     {
         $totalWithdrawals = Withdrawal::where('status', 'confirmed')->sum('amount');
+        $totalEventPayouts = \App\Models\EventPayout::where('status', 'confirmed')->sum('prize_amount');
         
         // Calculate total platform income from all views
         $totalViews = View::count();
@@ -24,12 +25,12 @@ class DashboardStats extends BaseWidget
         // Calculate current user balances
         $totalUserBalances = User::sum('balance');
         
-        // Calculate total paid out (withdrawals + event payouts)
-        $totalPaidOut = $totalWithdrawals + User::sum('total_withdrawn');
+        // Calculate total paid out (withdrawals + event payouts + total_withdrawn)
+        $totalPaidOut = $totalWithdrawals + $totalEventPayouts + User::sum('total_withdrawn');
 
         return [
-            Stat::make('💰 TOTAL PENDAPATAN PLATFORM', 'Rp' . number_format($totalPlatformIncome, 0, ',', '.'))
-                ->description("Dari {$totalViews} views × Rp{$cpm} CPM")
+            Stat::make('💰 TOTAL PENDAPATAN APLIKASI', 'Rp' . number_format($totalPlatformIncome, 0, ',', '.'))
+                ->description("Dari {$totalViews} views × Rp{$cpm} CPM - INI ADALAH TOTAL INCOME KESELURUHAN")
                 ->icon('heroicon-o-currency-dollar')
                 ->color('success'),
             Stat::make('Total Pengguna', User::count())
@@ -45,7 +46,7 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-wallet')
                 ->color('warning'),
             Stat::make('Total Sudah Dibayar', 'Rp' . number_format($totalPaidOut, 0, ',', '.'))
-                ->description('Total yang sudah ditarik + event payouts')
+                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.') . " + Total Withdrawn: Rp" . number_format(User::sum('total_withdrawn'), 0, ',', '.'))
                 ->icon('heroicon-o-banknotes')
                 ->color('danger'),
             Stat::make('Penarikan Berhasil', Withdrawal::where('status', 'confirmed')->count()),
