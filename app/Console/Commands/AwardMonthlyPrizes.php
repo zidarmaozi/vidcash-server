@@ -55,14 +55,14 @@ public function handle()
         3 => Setting::where('key', 'event_prize_3')->first()?->value ?? 25000,
     ];
 
-    // 5. Query untuk mencari Top 3 Pemenang bulan lalu
-    $winners = User::select('users.id as user_id', DB::raw('count(views.id) as total_views'))
+    // 5. Query untuk mencari Top 3 Pemenang bulan lalu - Using STORED income amounts
+    $winners = User::select('users.id as user_id', DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings'))
         ->join('videos', 'users.id', '=', 'videos.user_id')
         ->join('views', 'videos.id', '=', 'views.video_id')
         ->whereMonth('views.created_at', $period->month)
         ->whereYear('views.created_at', $period->year)
         ->groupBy('users.id')
-        ->orderBy('total_views', 'desc')
+        ->orderBy('total_earnings', 'desc')
         ->limit(3)
         ->get();
 
@@ -78,7 +78,7 @@ public function handle()
             'user_id' => $winner->user_id,
             'period' => $periodString,
             'rank' => $currentRank,
-            'total_views' => $winner->total_views,
+            'total_views' => $winner->total_earnings, // Use total_earnings from the query
             'prize_amount' => $prizes[$currentRank],
             'status' => 'pending', // Statusnya pending
         ]);
