@@ -17,10 +17,14 @@ class DashboardStats extends BaseWidget
         $totalWithdrawals = Withdrawal::where('status', 'confirmed')->sum('amount');
         $totalEventPayouts = \App\Models\EventPayout::where('status', 'confirmed')->sum('prize_amount');
         
-        // Calculate total platform income from all views
+        // Calculate total platform income from STORED income amounts (not dynamic calculation)
+        $totalStoredIncome = View::where('income_generated', true)->sum('income_amount');
         $totalViews = View::count();
-        $cpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
-        $totalPlatformIncome = $totalViews * $cpm;
+        $totalValidatedViews = View::where('validation_passed', true)->count();
+        $totalFailedViews = View::where('validation_passed', false)->count();
+        
+        // Get current CPM for comparison
+        $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
         
         // Calculate current user balances
         $totalUserBalances = User::sum('balance');
@@ -29,18 +33,22 @@ class DashboardStats extends BaseWidget
         $totalPaidOut = $totalWithdrawals + $totalEventPayouts + User::sum('total_withdrawn');
 
         return [
-            Stat::make('💰 TOTAL PENDAPATAN APLIKASI', 'Rp' . number_format($totalPlatformIncome, 0, ',', '.'))
-                ->description("Dari {$totalViews} views × Rp{$cpm} CPM - INI ADALAH TOTAL INCOME KESELURUHAN")
+            Stat::make('💰 TOTAL PENDAPATAN APLIKASI (STORED)', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
+                ->description("Dari {$totalValidatedViews} views yang lolos validasi - INI ADALAH TOTAL INCOME KESELURUHAN")
                 ->icon('heroicon-o-currency-dollar')
                 ->color('success'),
+            Stat::make('📊 Total Views & Validasi', number_format($totalViews))
+                ->description("Lolos: {$totalValidatedViews} | Gagal: {$totalFailedViews}")
+                ->icon('heroicon-o-eye')
+                ->color('info'),
+            Stat::make('⚙️ CPM Saat Ini', 'Rp' . number_format($currentCpm, 0, ',', '.'))
+                ->description("Pengaturan CPM terkini")
+                ->icon('heroicon-o-cog-6-tooth')
+                ->color('warning'),
             Stat::make('Total Pengguna', User::count())
                 ->icon('heroicon-o-users'),
             Stat::make('Total Video', Video::count())
                 ->icon('heroicon-o-video-camera'),
-            Stat::make('Total Views', number_format($totalViews))
-                ->description('Semua views yang telah direkam')
-                ->icon('heroicon-o-eye')
-                ->color('info'),
             Stat::make('Saldo User Saat Ini', 'Rp' . number_format($totalUserBalances, 0, ',', '.'))
                 ->description('Total saldo yang belum ditarik')
                 ->icon('heroicon-o-wallet')

@@ -27,14 +27,14 @@ class LeaderboardController extends Controller
             3 => Setting::where('key', 'event_prize_3')->first()?->value ?? 0,
         ];
 
-        // 3. Query untuk mendapatkan Top 10 User bulan ini
-        $topUsers = User::select('users.name', DB::raw('count(views.id) as total_views'))
+        // 3. Query untuk mendapatkan Top 10 User bulan ini - Using STORED income amounts
+        $topUsers = User::select('users.name', DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings'))
             ->join('videos', 'users.id', '=', 'videos.user_id')
             ->join('views', 'videos.id', '=', 'views.video_id')
             ->whereMonth('views.created_at', now()->month)
             ->whereYear('views.created_at', now()->year)
             ->groupBy('users.id', 'users.name')
-            ->orderBy('total_views', 'desc')
+            ->orderBy('total_earnings', 'desc')
             ->limit(10)
             ->get();
 

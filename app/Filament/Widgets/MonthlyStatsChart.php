@@ -14,17 +14,19 @@ class MonthlyStatsChart extends ChartWidget
 
     protected function getData(): array
     {
+        // Get data for current month using STORED income amounts
         $data = View::select(
                 DB::raw('DATE(created_at) as date'),
-                DB::raw('count(*) as views')
+                DB::raw('count(*) as views'),
+                DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
             )
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
 
-        // Get actual CPM setting from database
-        $cpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
+        // Get current CPM for comparison
+        $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
 
         return [
             'datasets' => [
@@ -35,10 +37,16 @@ class MonthlyStatsChart extends ChartWidget
                     'backgroundColor' => 'rgba(59, 130, 246, 0.5)',
                 ],
                 [
-                    'label' => 'Pendapatan (Rp)',
-                    'data' => $data->pluck('views')->map(fn ($view) => $view * $cpm)->all(),
+                    'label' => 'Pendapatan (Rp) - STORED',
+                    'data' => $data->pluck('total_income')->all(),
                     'borderColor' => 'rgba(22, 163, 74, 1)',
                     'backgroundColor' => 'rgba(22, 163, 74, 0.5)',
+                ],
+                [
+                    'label' => 'Pendapatan (Rp) - CALCULATED',
+                    'data' => $data->pluck('views')->map(fn ($view) => $view * $currentCpm)->all(),
+                    'borderColor' => 'rgba(239, 68, 68, 1)',
+                    'backgroundColor' => 'rgba(239, 68, 68, 0.5)',
                 ]
             ],
             'labels' => $data->pluck('date')->map(fn ($date) => Carbon::parse($date)->format('d M'))->all(),
