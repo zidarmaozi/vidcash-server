@@ -31,8 +31,7 @@ class DashboardStats extends BaseWidget
             Stat::make('💰 TOTAL PENDAPATAN PLATFORM', 'Rp' . number_format($totalPlatformIncome, 0, ',', '.'))
                 ->description("Dari {$totalViews} views × Rp{$cpm} CPM")
                 ->icon('heroicon-o-currency-dollar')
-                ->color('success')
-                ->size('lg'),
+                ->color('success'),
             Stat::make('Total Pengguna', User::count())
                 ->icon('heroicon-o-users'),
             Stat::make('Total Video', Video::count())
