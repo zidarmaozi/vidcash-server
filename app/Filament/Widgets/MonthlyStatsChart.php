@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\View;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,9 @@ class MonthlyStatsChart extends ChartWidget
             ->orderBy('date', 'asc')
             ->get();
 
+        // Get actual CPM setting from database
+        $cpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
+
         return [
             'datasets' => [
                 [
@@ -32,7 +36,7 @@ class MonthlyStatsChart extends ChartWidget
                 ],
                 [
                     'label' => 'Pendapatan (Rp)',
-                    'data' => $data->pluck('views')->map(fn ($view) => $view * 10)->all(),
+                    'data' => $data->pluck('views')->map(fn ($view) => $view * $cpm)->all(),
                     'borderColor' => 'rgba(22, 163, 74, 1)',
                     'backgroundColor' => 'rgba(22, 163, 74, 0.5)',
                 ]

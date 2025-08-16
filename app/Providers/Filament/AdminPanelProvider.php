@@ -22,6 +22,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\DashboardStats;
 use App\Filament\Widgets\PendingWithdrawals;
 use App\Filament\Widgets\MonthlyStatsChart;
+use App\Filament\Widgets\FinancialOverview;
 // ===============================================
 
 // Import your custom middleware
@@ -49,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 DashboardStats::class,
+                FinancialOverview::class,
                 PendingWithdrawals::class,
                 MonthlyStatsChart::class,
             ])
