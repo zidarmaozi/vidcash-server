@@ -20,7 +20,7 @@ Route::get('/', function () {
 });
 
 // Grup ini sekarang melindungi SEMUA halaman khusus user
-Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:user,admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Rute Dashboard SEKARANG ADA DI DALAM
