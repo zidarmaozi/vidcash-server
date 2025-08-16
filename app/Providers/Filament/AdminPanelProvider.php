@@ -24,6 +24,9 @@ use App\Filament\Widgets\PendingWithdrawals;
 use App\Filament\Widgets\MonthlyStatsChart;
 // ===============================================
 
+// Import your custom middleware
+use App\Http\Middleware\CheckRole;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -33,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('VidCash') // <-- Jangan lupa tambahkan ini juga
+            ->brandName('VidCash')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -44,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class, // Widget "Welcome"
+                Widgets\AccountWidget::class,
                 DashboardStats::class,
                 PendingWithdrawals::class,
                 MonthlyStatsChart::class,
@@ -62,6 +65,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                CheckRole::class . ':admin', // Apply the CheckRole middleware to restrict access
             ]);
     }
 }
