@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
 {
+    // Set application timezone to Asia/Makassar (WITA)
+    date_default_timezone_set('Asia/Makassar');
+    
     // Bagikan data notifikasi ke semua view yang menggunakan layout 'layouts.app'
     View::composer('layouts.app', function ($view) {
        if (Auth::check()) {
