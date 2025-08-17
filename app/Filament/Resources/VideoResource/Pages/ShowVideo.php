@@ -119,10 +119,7 @@ class ShowVideo extends ViewRecord
 
     protected function getViewsTable(): \Filament\Tables\Table
     {
-        return \Filament\Tables\Table::make()
-            ->query(
-                $this->record->views()->getQuery()
-            )
+        return \Filament\Tables\Table::make($this->record->views()->getQuery())
             ->columns([
                 TextColumn::make('created_at')
                     ->label('View Time')
