@@ -29,6 +29,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hadiah</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Views</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Earnings</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -50,9 +51,10 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-right font-bold text-indigo-600">{{ number_format($user->total_views) }}</td>
+                                        <td class="px-6 py-4 text-right font-bold text-green-600">Rp{{ number_format($user->total_earnings, 0, ',', '.') }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-center py-10 text-gray-500">Belum ada data untuk bulan ini.</td></tr>
+                                    <tr><td colspan="5" class="text-center py-10 text-gray-500">Belum ada data untuk bulan ini.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

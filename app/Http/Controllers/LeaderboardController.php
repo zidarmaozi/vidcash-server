@@ -28,7 +28,11 @@ class LeaderboardController extends Controller
         ];
 
         // 3. Query untuk mendapatkan Top 10 User bulan ini - Using STORED income amounts
-        $topUsers = User::select('users.name', DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings'))
+        $topUsers = User::select(
+            'users.name', 
+            DB::raw('COUNT(views.id) as total_views'),
+            DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings')
+        )
             ->join('videos', 'users.id', '=', 'videos.user_id')
             ->join('views', 'videos.id', '=', 'views.video_id')
             ->whereMonth('views.created_at', now()->month)

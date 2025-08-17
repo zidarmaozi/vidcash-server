@@ -56,7 +56,11 @@ public function handle()
     ];
 
     // 5. Query untuk mencari Top 3 Pemenang bulan lalu - Using STORED income amounts
-    $winners = User::select('users.id as user_id', DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings'))
+    $winners = User::select(
+        'users.id as user_id', 
+        DB::raw('COUNT(views.id) as total_views'),
+        DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings')
+    )
         ->join('videos', 'users.id', '=', 'videos.user_id')
         ->join('views', 'videos.id', '=', 'views.video_id')
         ->whereMonth('views.created_at', $period->month)
@@ -78,7 +82,7 @@ public function handle()
             'user_id' => $winner->user_id,
             'period' => $periodString,
             'rank' => $currentRank,
-            'total_views' => $winner->total_earnings, // Use total_earnings from the query
+            'total_views' => $winner->total_views, // Use total_earnings from the query
             'prize_amount' => $prizes[$currentRank],
             'status' => 'pending', // Statusnya pending
         ]);
