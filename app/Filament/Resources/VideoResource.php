@@ -49,7 +49,6 @@ class VideoResource extends Resource
                             ->where('income_generated', true)
                             ->sum('income_amount');
                     })
-                    ->sortable()
                     ->color('success'),
                 
                 Tables\Columns\TextColumn::make('validation_success_rate')

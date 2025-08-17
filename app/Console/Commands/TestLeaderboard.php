@@ -31,10 +31,10 @@ class TestLeaderboard extends Command
         $this->newLine();
 
         try {
-            // Test the exact query from LeaderboardController
+            // Test the exact query from LeaderboardController - Updated to count only VALID views
             $topUsers = User::select(
                 'users.name', 
-                DB::raw('COUNT(views.id) as total_views'),
+                DB::raw('SUM(CASE WHEN views.validation_passed = 1 THEN 1 ELSE 0 END) as total_views'),
                 DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings')
             )
                 ->join('videos', 'users.id', '=', 'videos.user_id')

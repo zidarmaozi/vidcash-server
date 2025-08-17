@@ -28,7 +28,7 @@
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Rank</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hadiah</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Valid Views</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Views</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Earnings</th>
                                 </tr>
                             </thead>

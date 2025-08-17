@@ -52,7 +52,7 @@
                             </select>
                             <select name="sort_by" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
                                 <option value="created_at" @if($filters['sort_by'] == 'created_at') selected @endif>Tanggal</option>
-                                <option value="views_count" @if($filters['sort_by'] == 'views_count') selected @endif>Valid Views</option>
+                                <option value="views_count" @if($filters['sort_by'] == 'views_count') selected @endif>Views</option>
                             </select>
                             <select name="sort_dir" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
                                 <option value="desc" @if($filters['sort_dir'] == 'desc') selected @endif>Terbaru</option>
@@ -86,7 +86,7 @@
                         <tr>
                             <th class="p-4"><input type="checkbox" id="select-all-checkbox-table" class="h-4 w-4 text-indigo-600 border-gray-300 rounded"></th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valid Views</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Views</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tindakan</th>
                         </tr>

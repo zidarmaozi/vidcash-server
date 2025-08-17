@@ -111,13 +111,13 @@
                     <h3 class="text-lg font-semibold mb-4">Performa</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
          <div>
-            <p class="text-sm text-gray-500">Valid Klik Hari Ini</p>
+            <p class="text-sm text-gray-500">Klik Hari Ini</p>
             <p class="text-2xl font-medium text-gray-900">{{ number_format($clicksToday) }}</p>
-            <p class="text-xs text-gray-500">Hanya yang lolos validasi</p>
+            <p class="text-xs text-gray-500">Total klik hari ini</p>
         </div>
         
         <div>
-            <p class="text-sm text-gray-500">Valid Klik Kemarin</p>
+            <p class="text-sm text-gray-500">Klik Kemarin</p>
             <p class="text-2xl font-medium text-gray-900">{{ number_format($viewsYesterday) }}</p>
             @php
                 $comparison = $comparisonYesterdayViews;
@@ -129,9 +129,9 @@
             </p>
         </div>
         <div>
-            <p class="text-sm text-gray-500">Valid Klik Bulan Ini</p>
+            <p class="text-sm text-gray-500">Klik Bulan Ini</p>
             <p class="text-2xl font-medium text-gray-900">{{ number_format($viewsThisMonth) }}</p>
-            <p class="text-xs text-gray-500">Hanya yang lolos validasi</p>
+            <p class="text-xs text-gray-500">Total klik bulan ini</p>
         </div>
 
         <div>
@@ -144,21 +144,21 @@
                 
    <!-- Kartu Statistik -->
 <div class="bg-white p-6 rounded-lg">
-    <h3 class="text-lg font-semibold mb-4">Statistik Valid Views & Pendapatan 30 Hari Terakhir</h3>
+    <h3 class="text-lg font-semibold mb-4">Statistik Views & Pendapatan 30 Hari Terakhir</h3>
     <div id="dashboardChart"></div>
 </div>
 </div>
 
 <!-- Tabel Video Terpopuler -->
 <div class="bg-white p-6 rounded-lg">
-    <h3 class="text-lg font-semibold mb-4">Top Videos - Valid Views (Last 7 Days)</h3>
+    <h3 class="text-lg font-semibold mb-4">Top Videos - Views (Last 7 Days)</h3>
     <div class="overflow-x-auto">
         <table class="min-w-full">
             <thead class="border-b">
                 <tr>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
-                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Valid Views</th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Views</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -174,7 +174,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="px-4 py-4 text-center text-sm text-gray-500">Belum ada data valid view dalam 7 hari terakhir.</td>
+                        <td colspan="3" class="px-4 py-4 text-center text-sm text-gray-500">Belum ada data view dalam 7 hari terakhir.</td>
                     </tr>
                 @endforelse
             </tbody>

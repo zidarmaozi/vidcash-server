@@ -55,10 +55,10 @@ public function handle()
         3 => Setting::where('key', 'event_prize_3')->first()?->value ?? 25000,
     ];
 
-    // 5. Query untuk mencari Top 3 Pemenang bulan lalu - Using STORED income amounts
+    // 5. Query untuk mencari Top 3 Pemenang bulan lalu - Using STORED income amounts and VALID views only
     $winners = User::select(
         'users.id as user_id', 
-        DB::raw('COUNT(views.id) as total_views'),
+        DB::raw('SUM(CASE WHEN views.validation_passed = 1 THEN 1 ELSE 0 END) as total_views'),
         DB::raw('SUM(CASE WHEN views.income_generated = 1 THEN views.income_amount ELSE 0 END) as total_earnings')
     )
         ->join('videos', 'users.id', '=', 'videos.user_id')
