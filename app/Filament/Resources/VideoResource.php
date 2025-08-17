@@ -33,10 +33,66 @@ class VideoResource extends Resource
                 Tables\Columns\TextColumn::make('title')->label('Judul')->searchable(),
                 Tables\Columns\TextColumn::make('user.name')->label('Pemilik')->searchable(),
                 Tables\Columns\TextColumn::make('generated_link')->label('Link Video')->searchable(),
+                
+                // Views and Performance Metrics
+                Tables\Columns\TextColumn::make('views_count')
+                    ->label('Total Views')
+                    ->counts('views')
+                    ->sortable()
+                    ->color('info'),
+                
+                Tables\Columns\TextColumn::make('income_generated')
+                    ->label('Income Generated')
+                    ->money('IDR')
+                    ->getStateUsing(function (Video $record) {
+                        return $record->views()
+                            ->where('income_generated', true)
+                            ->sum('income_amount');
+                    })
+                    ->sortable()
+                    ->color('success'),
+                
+                Tables\Columns\TextColumn::make('validation_success_rate')
+                    ->label('Success Rate')
+                    ->getStateUsing(function (Video $record) {
+                        $totalViews = $record->views()->count();
+                        if ($totalViews === 0) return '0%';
+                        
+                        $successfulViews = $record->views()->where('validation_passed', true)->count();
+                        $rate = round(($successfulViews / $totalViews) * 100, 1);
+                        return $rate . '%';
+                    })
+                    ->badge()
+                    ->color(function (string $state): string {
+                        $rate = (float) str_replace('%', '', $state);
+                        if ($rate >= 80) return 'success';
+                        if ($rate >= 60) return 'warning';
+                        return 'danger';
+                    }),
+                
+                Tables\Columns\TextColumn::make('last_view')
+                    ->label('Last View')
+                    ->getStateUsing(function (Video $record) {
+                        $lastView = $record->views()->latest()->first();
+                        return $lastView ? $lastView->created_at->diffForHumans() : 'Never';
+                    })
+                    ->color('gray'),
+                
                 Tables\Columns\TextColumn::make('created_at')->label('Tanggal Dibuat')->dateTime()->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('user')
+                    ->relationship('user', 'name')
+                    ->label('Filter by User'),
+                
+                Tables\Filters\Filter::make('has_views')
+                    ->label('Has Views')
+                    ->query(fn ($query) => $query->has('views')),
+                
+                Tables\Filters\Filter::make('no_views')
+                    ->label('No Views')
+                    ->query(fn ($query) => $query->doesntHave('views')),
             ])
             ->actions([
                 // Ganti ClipboardAction dengan Action biasa yang menjalankan JavaScript
@@ -66,6 +122,14 @@ class VideoResource extends Resource
                             ",
                         ];
                     }),
+                
+                // Add view details action
+                Action::make('viewDetails')
+                    ->label('View Details')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (Video $record) => route('filament.admin.resources.videos.show', $record))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Video $record) => $record->views()->count() > 0),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -78,6 +142,7 @@ class VideoResource extends Resource
     {
         return [
             'index' => Pages\ListVideos::route('/'),
+            'show' => Pages\ShowVideo::route('/{record}'),
         ];
     }    
 }
