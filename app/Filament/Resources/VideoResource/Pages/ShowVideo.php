@@ -17,6 +17,44 @@ class ShowVideo extends ViewRecord
     {
         return $infolist
             ->schema([
+                Section::make('Video Preview')
+                    ->schema([
+                        TextEntry::make('video_player')
+                            ->label('')
+                            ->getStateUsing(function ($record) {
+                                $videoUrl = 'https://cdn.videy.co/' . $record->video_code . '.mp4';
+                                return view('components.video-player', ['videoUrl' => $videoUrl])->render();
+                            })
+                            ->html()
+                            ->columnSpanFull(),
+                        
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('video_url')
+                                    ->label('CDN URL')
+                                    ->getStateUsing(function ($record) {
+                                        return 'https://cdn.videy.co/' . $record->video_code . '.mp4';
+                                    })
+                                    ->copyable()
+                                    ->copyMessage('Video URL copied!')
+                                    ->color('info'),
+                                
+                                TextEntry::make('video_format')
+                                    ->label('Format')
+                                    ->getStateUsing('MP4')
+                                    ->badge()
+                                    ->color('success'),
+                                
+                                TextEntry::make('video_code_display')
+                                    ->label('Video Code')
+                                    ->getStateUsing(fn ($record) => $record->video_code)
+                                    ->copyable()
+                                    ->copyMessage('Video code copied!')
+                                    ->color('warning'),
+                            ]),
+                    ])
+                    ->collapsible(false),
+
                 Section::make('Video Information')
                     ->schema([
                         Grid::make(2)
