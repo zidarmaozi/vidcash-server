@@ -20,30 +20,46 @@ class DashboardController extends Controller
     $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
 
     // --- Data Hari Ini - Using STORED income amounts ---
-    $viewsToday = View::whereIn('video_id', $videoIds)->whereDate('created_at', today())->count();
+    $validViewsToday = View::whereIn('video_id', $videoIds)
+        ->whereDate('created_at', today())
+        ->where('validation_passed', true)
+        ->count();
     $earningsToday = View::whereIn('video_id', $videoIds)
         ->whereDate('created_at', today())
         ->where('income_generated', true)
         ->sum('income_amount');
 
     // --- Data Kemarin - Using STORED income amounts ---
-    $viewsYesterday = View::whereIn('video_id', $videoIds)->whereDate('created_at', today()->subDay())->count();
+    $validViewsYesterday = View::whereIn('video_id', $videoIds)
+        ->whereDate('created_at', today()->subDay())
+        ->where('validation_passed', true)
+        ->count();
     $earningsYesterday = View::whereIn('video_id', $videoIds)
         ->whereDate('created_at', today()->subDay())
         ->where('income_generated', true)
         ->sum('income_amount');
     
-    $viewsDayBeforeYesterday = View::whereIn('video_id', $videoIds)->whereDate('created_at', today()->subDays(2))->count();
+    $validViewsDayBeforeYesterday = View::whereIn('video_id', $videoIds)
+        ->whereDate('created_at', today()->subDays(2))
+        ->where('validation_passed', true)
+        ->count();
 
     // --- Data 7 Hari Terakhir - Using STORED income amounts ---
-    $viewsLast7Days = View::whereIn('video_id', $videoIds)->where('created_at', '>=', now()->subDays(6))->count();
+    $validViewsLast7Days = View::whereIn('video_id', $videoIds)
+        ->where('created_at', '>=', now()->subDays(6))
+        ->where('validation_passed', true)
+        ->count();
     $earningsLast7Days = View::whereIn('video_id', $videoIds)
         ->where('created_at', '>=', now()->subDays(6))
         ->where('income_generated', true)
         ->sum('income_amount');
     
     // --- Data Bulan Ini - Using STORED income amounts ---
-    $viewsThisMonth = View::whereIn('video_id', $videoIds)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+    $validViewsThisMonth = View::whereIn('video_id', $videoIds)
+        ->whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->where('validation_passed', true)
+        ->count();
     $earningsThisMonth = View::whereIn('video_id', $videoIds)
         ->whereMonth('created_at', now()->month)
         ->whereYear('created_at', now()->year)
@@ -67,10 +83,10 @@ class DashboardController extends Controller
         ->where('income_generated', true)
         ->sum('income_amount');
 
-    // --- LOGIKA BARU UNTUK APEXCHARTS - Using STORED income amounts ---
+    // --- LOGIKA BARU UNTUK APEXCHARTS - Using STORED income amounts and VALID views only ---
     $viewsData = View::select(
             DB::raw('DATE(created_at) as date'),
-            DB::raw('count(*) as views'),
+            DB::raw('SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as valid_views'),
             DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
         )
         ->whereIn('video_id', $videoIds)
@@ -81,18 +97,19 @@ class DashboardController extends Controller
 
     // Ubah data menjadi format yang dimengerti ApexCharts
     $chartViewsData = $viewsData->map(function ($item) {
-        return [Carbon::parse($item->date)->timestamp * 1000, $item->views];
+        return [Carbon::parse($item->date)->timestamp * 1000, $item->valid_views];
     });
 
     $chartEarningsData = $viewsData->map(function ($item) {
         return [Carbon::parse($item->date)->timestamp * 1000, $item->total_income];
     });
 
-    // --- LOGIKA BARU UNTUK VIDEO TERPOPULER ---
+    // --- LOGIKA BARU UNTUK VIDEO TERPOPULER - Using VALID views only ---
     $topVideos = $user->videos()
         ->withCount(['views' => function ($query) {
-            // Hanya hitung view dalam 7 hari terakhir
-            $query->where('created_at', '>=', now()->subDays(7));
+            // Hanya hitung VALID view dalam 7 hari terakhir
+            $query->where('created_at', '>=', now()->subDays(7))
+                  ->where('validation_passed', true);
         }])
         ->orderBy('views_count', 'desc')
         ->limit(7)
@@ -114,11 +131,11 @@ class DashboardController extends Controller
         'comparisonLast7Days' => $earningsLast7Days - $earningsPrevious7Days,
         'comparisonThisMonth' => $earningsThisMonth - $earningsLastMonth,
 
-        'viewsYesterday' => $viewsYesterday,
-        'comparisonYesterdayViews' => $viewsYesterday - $viewsDayBeforeYesterday,
+        'viewsYesterday' => $validViewsYesterday,
+        'comparisonYesterdayViews' => $validViewsYesterday - $validViewsDayBeforeYesterday,
 
-        'clicksToday' => $viewsToday,
-        'viewsThisMonth' => $viewsThisMonth,
+        'clicksToday' => $validViewsToday,
+        'viewsThisMonth' => $validViewsThisMonth,
 
         // untuk chart
         'chartViewsData' => $chartViewsData,

@@ -22,7 +22,9 @@ class VideoController extends Controller
         $sortDir = $request->query('sort_dir', 'desc');
         $perPage = $request->query('per_page', 10);
 
-        $videosQuery = $user->videos()->withCount('views');
+        $videosQuery = $user->videos()->withCount(['views' => function ($query) {
+            $query->where('validation_passed', true);
+        }]);
 
         if ($search) {
             // Pencarian sekarang menggunakan accessor, jadi kita cari di video_code
