@@ -18,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
+use Filament\Tables\Actions\Action;
 
 class UserResource extends Resource
 {
@@ -97,7 +98,12 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Action::make('view_profile')
+                    ->label('View Profile')
+                    ->icon('heroicon-o-user')
+                    ->url(fn ($record) => route('filament.admin.pages.user-profile') . '?user_id=' . $record->id)
+                    ->openUrlInNewTab()
+                    ->color('info'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

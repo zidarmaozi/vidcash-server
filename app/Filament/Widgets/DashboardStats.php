@@ -29,8 +29,8 @@ class DashboardStats extends BaseWidget
         // Calculate current user balances
         $totalUserBalances = User::sum('balance');
         
-        // Calculate total paid out (withdrawals + event payouts + total_withdrawn)
-        $totalPaidOut = $totalWithdrawals + $totalEventPayouts + User::sum('total_withdrawn');
+        // Calculate total paid out (withdrawals + event payouts)
+        $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
 
         return [
             Stat::make('💰 TOTAL PENDAPATAN APLIKASI (STORED)', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -54,7 +54,7 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-wallet')
                 ->color('warning'),
             Stat::make('Total Sudah Dibayar', 'Rp' . number_format($totalPaidOut, 0, ',', '.'))
-                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.') . " + Total Withdrawn: Rp" . number_format(User::sum('total_withdrawn'), 0, ',', '.'))
+                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.'))
                 ->icon('heroicon-o-banknotes')
                 ->color('danger'),
             Stat::make('Penarikan Berhasil', Withdrawal::where('status', 'confirmed')->count()),

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Pages\Page;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\ChartWidget;
@@ -67,13 +66,12 @@ class UserStatsOverview extends BaseWidget
 {
     public $record;
 
-    public function mount($record): void
-    {
-        $this->record = $record;
-    }
-
     protected function getStats(): array
     {
+        if (!$this->record) {
+            return [];
+        }
+
         $user = $this->record;
         
         // Calculate financial stats
@@ -146,15 +144,14 @@ class UserVideosTable extends TableWidget
 {
     public $record;
 
-    public function mount($record): void
-    {
-        $this->record = $record;
-    }
-
     protected static ?string $heading = 'Uploaded Videos';
 
     public function table(Table $table): Table
     {
+        if (!$this->record) {
+            return $table->query(DB::table('videos')->where('id', 0)); // Empty query
+        }
+
         return $table
             ->query(
                 $this->record->videos()
@@ -200,7 +197,7 @@ class UserVideosTable extends TableWidget
                 Action::make('view_video')
                     ->label('View Details')
                     ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('filament.admin.resources.users.show', $record))
+                    ->url(fn ($record) => route('filament.admin.resources.videos.show', $record))
                     ->openUrlInNewTab()
                     ->color('info'),
             ])

@@ -31,7 +31,7 @@ class FinancialOverview extends BaseWidget
         // Calculate total paid out (withdrawals + event payouts)
         $totalWithdrawals = Withdrawal::where('status', 'confirmed')->sum('amount');
         $totalEventPayouts = EventPayout::where('status', 'confirmed')->sum('prize_amount');
-        $totalPaidOut = $totalWithdrawals + $totalEventPayouts + User::sum('total_withdrawn');
+        $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
         
         // Calculate pending amounts
         $pendingWithdrawals = Withdrawal::where('status', 'pending')->sum('amount');
@@ -57,7 +57,7 @@ class FinancialOverview extends BaseWidget
                 ->color('warning'),
             
             Stat::make('Total Sudah Dibayar', 'Rp' . number_format($totalPaidOut, 0, ',', '.'))
-                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.') . " + Total Withdrawn: Rp" . number_format(User::sum('total_withdrawn'), 0, ',', '.'))
+                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.'))
                 ->icon('heroicon-o-banknotes')
                 ->color('danger'),
             
