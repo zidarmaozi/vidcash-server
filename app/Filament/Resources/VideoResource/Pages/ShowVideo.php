@@ -8,12 +8,6 @@ use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\Actions\Action;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-use Illuminate\Database\Eloquent\Builder;
 
 class ShowVideo extends ViewRecord
 {
@@ -111,63 +105,51 @@ class ShowVideo extends ViewRecord
 
                 Section::make('Views History')
                     ->schema([
-                        $this->getViewsTable(),
+                        TextEntry::make('views_summary')
+                            ->label('Views Summary')
+                            ->getStateUsing(function ($record) {
+                                $totalViews = $record->views()->count();
+                                $successfulViews = $record->views()->where('validation_passed', true)->count();
+                                $failedViews = $record->views()->where('validation_passed', false)->count();
+                                $totalIncome = $record->views()->where('income_generated', true)->sum('income_amount');
+                                
+                                if ($totalViews === 0) {
+                                    return 'No views yet';
+                                }
+                                
+                                return "Total: {$totalViews} | Success: {$successfulViews} | Failed: {$failedViews} | Income: Rp" . number_format($totalIncome, 0, ',', '.');
+                            })
+                            ->markdown()
+                            ->prose(),
+                        
+                        TextEntry::make('recent_views')
+                            ->label('Recent Views (Last 10)')
+                            ->getStateUsing(function ($record) {
+                                $recentViews = $record->views()
+                                    ->latest()
+                                    ->limit(10)
+                                    ->get();
+                                
+                                if ($recentViews->isEmpty()) {
+                                    return 'No views yet';
+                                }
+                                
+                                $viewList = $recentViews->map(function ($view) {
+                                    $status = $view->validation_passed ? '✅' : '❌';
+                                    $income = $view->income_generated ? '💰' : '💸';
+                                    $time = $view->created_at->format('M d, H:i');
+                                    $ip = $view->ip_address;
+                                    
+                                    return "- {$status} {$income} **{$time}** - IP: `{$ip}` - " . 
+                                           ($view->income_amount > 0 ? 'Rp' . number_format($view->income_amount, 0, ',', '.') : 'No income');
+                                })->join("\n");
+                                
+                                return $viewList;
+                            })
+                            ->markdown()
+                            ->prose(),
                     ])
                     ->collapsible(),
-            ]);
-    }
-
-    protected function getViewsTable(): \Filament\Tables\Table
-    {
-        return \Filament\Tables\Table::make($this->record->views()->getQuery())
-            ->columns([
-                TextColumn::make('created_at')
-                    ->label('View Time')
-                    ->dateTime()
-                    ->sortable(),
-                
-                TextColumn::make('ip_address')
-                    ->label('IP Address')
-                    ->searchable(),
-                
-                TextColumn::make('validation_passed')
-                    ->label('Validation')
-                    ->badge()
-                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Passed' : 'Failed'),
-                
-                TextColumn::make('income_generated')
-                    ->label('Income Generated')
-                    ->badge()
-                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Yes' : 'No'),
-                
-                TextColumn::make('income_amount')
-                    ->label('Income Amount')
-                    ->money('IDR')
-                    ->formatStateUsing(fn ($state) => $state > 0 ? 'Rp' . number_format($state, 0, ',', '.') : '-'),
-                
-                TextColumn::make('cpm_at_time')
-                    ->label('CPM at Time')
-                    ->formatStateUsing(fn ($state) => $state > 0 ? 'Rp' . number_format($state, 0, ',', '.') : '-'),
-            ])
-            ->defaultSort('created_at', 'desc')
-            ->paginated([10, 25, 50, 100])
-            ->searchable()
-            ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('validation_passed')
-                    ->label('Validation Status')
-                    ->options([
-                        '1' => 'Passed',
-                        '0' => 'Failed',
-                    ]),
-                
-                \Filament\Tables\Filters\SelectFilter::make('income_generated')
-                    ->label('Income Generated')
-                    ->options([
-                        '1' => 'Yes',
-                        '0' => 'No',
-                    ]),
             ]);
     }
 }
