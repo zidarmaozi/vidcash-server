@@ -128,8 +128,7 @@ class VideoResource extends Resource
                     ->label('View Details')
                     ->icon('heroicon-o-eye')
                     ->url(fn (Video $record) => route('filament.admin.resources.videos.show', $record))
-                    ->openUrlInNewTab()
-                    ->visible(fn (Video $record) => $record->views()->count() > 0),
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
