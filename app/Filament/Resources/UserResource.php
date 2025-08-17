@@ -72,6 +72,11 @@ class UserResource extends Resource
         ->label('Total Ditarik')
         ->money('IDR')
         ->sortable(),
+    Tables\Columns\TextColumn::make('videos_count')
+        ->label('Total Video')
+        ->counts('videos')
+        ->sortable()
+        ->color('info'),
     Tables\Columns\TextColumn::make('role')
         ->badge()
         ->color(fn (string $state): string => match ($state) {
@@ -92,6 +97,7 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -113,6 +119,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
+            'show' => Pages\ShowUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
