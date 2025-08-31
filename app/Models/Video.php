@@ -51,6 +51,51 @@ class Video extends Model
         return $query->where('is_active', false);
     }
 
+    /**
+     * Check if video is available on CDN
+     * 
+     * @return bool
+     */
+    public function isAvailableOnCdn(): bool
+    {
+        try {
+            // First try MP4 format
+            $mp4Url = "https://cdn.videy.co/{$this->video_code}.mp4";
+            $mp4Response = \Illuminate\Support\Facades\Http::timeout(5)->head($mp4Url);
+            if ($mp4Response->successful()) {
+                return true;
+            }
+            
+            // If MP4 not found, try MOV format
+            $movUrl = "https://cdn.videy.co/{$this->video_code}.mov";
+            $movResponse = \Illuminate\Support\Facades\Http::timeout(5)->head($movUrl);
+            if ($movResponse->successful()) {
+                return true;
+            }
+            
+            // Both formats return 404, video is not available
+            return false;
+            
+        } catch (\Exception $e) {
+            // If there's a connection error, assume video might be temporarily unavailable
+            // Return true to avoid false positives
+            return true;
+        }
+    }
+
+    /**
+     * Get CDN URLs for this video
+     * 
+     * @return array
+     */
+    public function getCdnUrls(): array
+    {
+        return [
+            'mp4' => "https://cdn.videy.co/{$this->video_code}.mp4",
+            'mov' => "https://cdn.videy.co/{$this->video_code}.mov",
+        ];
+    }
+
     
 // fitur untuk views
 public function views()

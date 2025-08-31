@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\CheckVideoAvailability;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule; // <-- 1. Impor Schedule
@@ -19,3 +20,6 @@ Schedule::command(AwardMonthlyPrizes::class)->monthlyOn(1, '01:00');
 // Jadwalkan perintah ini untuk dijalankan setiap hari
 // Jalankan setiap hari pada tengah malam
 Schedule::command(PruneReadNotifications::class)->daily();
+
+// Video active worker
+Schedule::command(CheckVideoAvailability::class)->everyTenMinutes();
