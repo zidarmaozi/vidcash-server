@@ -43,7 +43,20 @@ class VideoResource extends Resource
                     ->color(fn (bool $state): string => $state ? 'success' : 'danger')
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Tidak Aktif')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('generated_link')->label('Link Video')->searchable(),
+                Tables\Columns\TextColumn::make('video_code')
+                    ->label('Video Code')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Video code copied!')
+                    ->color('warning'),
+                
+                Tables\Columns\TextColumn::make('original_link')
+                    ->label('Original Link')
+                    ->limit(30)
+                    ->tooltip(function (Video $record) {
+                        return $record->original_link;
+                    })
+                    ->color('gray'),
                 
                 // Views and Performance Metrics
                 Tables\Columns\TextColumn::make('views_count')
@@ -112,18 +125,17 @@ class VideoResource extends Resource
                     ->query(fn ($query) => $query->doesntHave('views')),
             ])
             ->actions([
-                // Ganti ClipboardAction dengan Action biasa yang menjalankan JavaScript
-                Action::make('copyLink')
-                    ->label('Salin Link')
+                // Copy video code action
+                Action::make('copyVideoCode')
+                    ->label('Salin Video Code')
                     ->icon('heroicon-o-clipboard-document')
                     ->action(null) // Aksi utama ditangani oleh JavaScript di bawah
                     ->extraAttributes(function (Video $record) {
-                        // PERBAIKAN DI SINI: Menggunakan addslashes() untuk meng-escape URL
-                        $escapedLink = addslashes($record->generated_link);
+                        $escapedCode = addslashes($record->video_code);
                         return [
                             // Menjalankan JavaScript saat tombol diklik
                             'onclick' => "
-                                const textToCopy = '{$escapedLink}';
+                                const textToCopy = '{$escapedCode}';
                                 const textarea = document.createElement('textarea');
                                 textarea.value = textToCopy;
                                 document.body.appendChild(textarea);
@@ -133,7 +145,7 @@ class VideoResource extends Resource
                                 
                                 // Menampilkan notifikasi sukses dari Filament
                                 new FilamentNotification()
-                                    .title('Link berhasil disalin!')
+                                    .title('Video code berhasil disalin!')
                                     .success()
                                     .send();
                             ",

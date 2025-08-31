@@ -124,12 +124,24 @@ class ShowVideo extends ViewRecord
                                     ->copyable()
                                     ->copyMessage('Video code copied!'),
                                 
-                                TextEntry::make('generated_link')
-                                    ->label('Generated Link')
+                                TextEntry::make('video_code')
+                                    ->label('Video Code')
                                     ->copyable()
-                                    ->copyMessage('Link copied!')
-                                    ->url(fn ($record) => $record->generated_link)
-                                    ->openUrlInNewTab(),
+                                    ->copyMessage('Video code copied!')
+                                    ->color('warning'),
+                                
+                                TextEntry::make('cdn_urls')
+                                    ->label('CDN URLs')
+                                    ->getStateUsing(function ($record) {
+                                        $mp4Url = "https://cdn.videy.co/{$record->video_code}.mp4";
+                                        $movUrl = "https://cdn.videy.co/{$record->video_code}.mov";
+                                        
+                                        return "**MP4:** {$mp4Url}\n\n**MOV:** {$movUrl}";
+                                    })
+                                    ->markdown()
+                                    ->prose()
+                                    ->copyable()
+                                    ->copyMessage('CDN URLs copied!'),
                                 
                                 TextEntry::make('created_at')
                                     ->label('Created At')
