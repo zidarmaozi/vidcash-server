@@ -35,7 +35,15 @@ class ServiceController extends Controller
             'video_code' => 'required|exists:videos,video_code',
         ]);
 
+        $mockResponse = response()->json([
+            'message' => 'View recorded successfully.'
+        ]);
         $video = Video::where('video_code', $validated['video_code'])->first();
+
+        if (!$video->is_active) {
+            return $mockResponse;
+        }
+
         $owner = $video->user;
         $ipAddress = $request->ip();
 
@@ -45,7 +53,8 @@ class ServiceController extends Controller
             ->where('ip_address', $ipAddress)->count();
 
         if ($existingViews >= $ipLimit) {
-            return response()->json(['message' => 'View limit reached.'], 429);
+            // return response()->json(['message' => 'View limit reached.'], 429);
+            return $mockResponse;
         }
 
         // 2. Tentukan Level Validasi
@@ -73,13 +82,14 @@ class ServiceController extends Controller
                 'income_generated' => false,
             ]);
 
-            return response()->json([
-                'message' => 'View not validated.',
-                'debug' => [
-                    'randomNumber' => $randomNumber,
-                    'validationLevel' => $validationLevel
-                ]
-            ], 422);
+            // return response()->json([
+            //     'message' => 'View not validated.',
+            //     'debug' => [
+            //         'randomNumber' => $randomNumber,
+            //         'validationLevel' => $validationLevel
+            //     ]
+            // ], 422);
+            return $mockResponse;
         }
         
         // 5. View passed validation - record with income information
@@ -98,11 +108,12 @@ class ServiceController extends Controller
         $owner->balance += $incomeAmount;
         $owner->save();
 
-        return response()->json([
-            'message' => 'View recorded successfully.',
-            'income_generated' => $incomeAmount,
-            'cpm_used' => $currentCpm
-        ]);
+        // return response()->json([
+        //     'message' => 'View recorded successfully.',
+        //     'income_generated' => $incomeAmount,
+        //     'cpm_used' => $currentCpm
+        // ]);
+        return $mockResponse;
     }
 
     // Fungsi helper untuk mengambil setting
