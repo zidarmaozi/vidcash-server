@@ -195,7 +195,7 @@
             // --- LOGIKA UPLOAD ---
             if (uploadBox) {
                 uploadBox.addEventListener('click', () => fileInput.click());
-                uploadButton.addEventListener('click', () => fileInput.click());
+                // uploadButton.addEventListener('click', () => fileInput.click());
                 fileInput.addEventListener('change', () => handleFileUpload(fileInput.files));
                 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
                     uploadBox.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); });
