@@ -33,8 +33,8 @@ class DashboardStats extends BaseWidget
         $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
 
         return [
-            Stat::make('💰 TOTAL PENDAPATAN APLIKASI (STORED)', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
-                ->description("Dari {$totalValidatedViews} views yang lolos validasi - INI ADALAH TOTAL INCOME KESELURUHAN")
+            Stat::make('💰 Total Pendapatan Platform', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
+                ->description("Dari {$totalValidatedViews} views yang lolos validasi")
                 ->icon('heroicon-o-currency-dollar')
                 ->color('success'),
             Stat::make('📊 Total Views & Validasi', number_format($totalViews))
@@ -48,18 +48,41 @@ class DashboardStats extends BaseWidget
             Stat::make('Total Pengguna', User::count())
                 ->icon('heroicon-o-users'),
             Stat::make('Total Video', Video::count())
-                ->icon('heroicon-o-video-camera'),
-            Stat::make('Saldo User Saat Ini', 'Rp' . number_format($totalUserBalances, 0, ',', '.'))
-                ->description('Total saldo yang belum ditarik')
-                ->icon('heroicon-o-wallet')
-                ->color('warning'),
-            Stat::make('Total Sudah Dibayar', 'Rp' . number_format($totalPaidOut, 0, ',', '.'))
-                ->description("Penarikan: Rp" . number_format($totalWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($totalEventPayouts, 0, ',', '.'))
-                ->icon('heroicon-o-banknotes')
+                ->description(Video::where('is_active', true)->count() . ' Aktif | ' . Video::where('is_active', false)->count() . ' Tidak Aktif')
+                ->icon('heroicon-o-video-camera')
+                ->color('info'),
+            Stat::make('Video Aktif', Video::where('is_active', true)->count())
+                ->description('Video yang tersedia dan dapat diakses')
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make('Video Tidak Aktif', Video::where('is_active', false)->count())
+                ->description('Video yang dinonaktifkan atau tidak tersedia')
+                ->icon('heroicon-o-x-circle')
                 ->color('danger'),
-            Stat::make('Penarikan Berhasil', Withdrawal::where('status', 'confirmed')->count()),
-            Stat::make('Penarikan Pending', Withdrawal::where('status', 'pending')->count()),
-            Stat::make('Penarikan Ditolak', Withdrawal::where('status', 'rejected')->count()),
+            Stat::make('Video Hari Ini', Video::whereDate('created_at', today())->count())
+                ->description('Video yang ditambahkan hari ini')
+                ->icon('heroicon-o-calendar-days')
+                ->color('primary'),
+            Stat::make('Video Minggu Ini', Video::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count())
+                ->description('Video yang ditambahkan minggu ini')
+                ->icon('heroicon-o-calendar')
+                ->color('primary'),
+            Stat::make('Video dengan Views', Video::has('views')->count())
+                ->description('Video yang sudah pernah dilihat')
+                ->icon('heroicon-o-eye')
+                ->color('success'),
+            Stat::make('Video Tanpa Views', Video::doesntHave('views')->count())
+                ->description('Video yang belum pernah dilihat')
+                ->icon('heroicon-o-eye-slash')
+                ->color('gray'),
+            Stat::make('💸 Financial Overview', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
+                ->description("Pendapatan: Rp" . number_format($totalStoredIncome, 0, ',', '.') . " | Dibayar: Rp" . number_format($totalPaidOut, 0, ',', '.') . " | Saldo: Rp" . number_format($totalUserBalances, 0, ',', '.'))
+                ->icon('heroicon-o-banknotes')
+                ->color('info'),
+            Stat::make('📋 Withdrawal Status', Withdrawal::count())
+                ->description("Berhasil: " . Withdrawal::where('status', 'confirmed')->count() . " | Pending: " . Withdrawal::where('status', 'pending')->count() . " | Ditolak: " . Withdrawal::where('status', 'rejected')->count())
+                ->icon('heroicon-o-clipboard-document-list')
+                ->color('warning'),
         ];
     }
 }
