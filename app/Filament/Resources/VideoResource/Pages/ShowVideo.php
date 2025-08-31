@@ -8,10 +8,35 @@ use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Grid;
+use Filament\Actions;
 
 class ShowVideo extends ViewRecord
 {
     protected static string $resource = VideoResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('toggleStatus')
+                ->label(fn (): string => $this->record->is_active ? 'Nonaktifkan Video' : 'Aktifkan Video')
+                ->icon(fn (): string => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                ->color(fn (): string => $this->record->is_active ? 'danger' : 'success')
+                ->requiresConfirmation()
+                ->modalHeading(fn (): string => $this->record->is_active ? 'Nonaktifkan Video' : 'Aktifkan Video')
+                ->modalDescription(fn (): string => $this->record->is_active 
+                    ? 'Apakah Anda yakin ingin menonaktifkan video ini? Video yang dinonaktifkan tidak akan dapat diakses.' 
+                    : 'Apakah Anda yakin ingin mengaktifkan video ini? Video yang diaktifkan akan dapat diakses kembali.')
+                ->action(function () {
+                    $this->record->update(['is_active' => !$this->record->is_active]);
+                    
+                    $status = $this->record->is_active ? 'diaktifkan' : 'dinonaktifkan';
+                    \Filament\Notifications\Notification::make()
+                        ->title("Video berhasil {$status}")
+                        ->success()
+                        ->send();
+                }),
+        ];
+    }
 
     public function infolist(Infolist $infolist): Infolist
     {
@@ -55,6 +80,27 @@ class ShowVideo extends ViewRecord
                     ])
                     ->collapsible(false),
 
+                Section::make('Video Status')
+                    ->schema([
+                        Grid::make(1)
+                            ->schema([
+                                TextEntry::make('status_info')
+                                    ->label('Status Video')
+                                    ->getStateUsing(function ($record) {
+                                        $status = $record->is_active ? 'Aktif' : 'Tidak Aktif';
+                                        $description = $record->is_active 
+                                            ? 'Video ini sedang aktif dan dapat diakses oleh pengguna.'
+                                            : 'Video ini sedang dinonaktifkan dan tidak dapat diakses oleh pengguna.';
+                                        
+                                        return "**{$status}**\n\n{$description}";
+                                    })
+                                    ->markdown()
+                                    ->prose()
+                                    ->color(fn ($record) => $record->is_active ? 'success' : 'danger'),
+                            ]),
+                    ])
+                    ->collapsible(false),
+
                 Section::make('Video Information')
                     ->schema([
                         Grid::make(2)
@@ -66,6 +112,12 @@ class ShowVideo extends ViewRecord
                                 TextEntry::make('user.name')
                                     ->label('Owner')
                                     ->size(TextEntry\TextEntrySize::Large),
+                                
+                                TextEntry::make('is_active')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
+                                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Tidak Aktif'),
                                 
                                 TextEntry::make('video_code')
                                     ->label('Video Code')

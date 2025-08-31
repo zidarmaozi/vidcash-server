@@ -15,6 +15,7 @@ class Video extends Model
         'original_link',
         'video_code',
         'validation_level',
+        'is_active',
     ];
 
      /**
@@ -32,6 +33,22 @@ class Video extends Model
     {
         $domain = Setting::where('key', 'video_domain')->first()?->value ?? 'videy.in';
         return 'https://' . $domain . '?id=' . $this->video_code;
+    }
+
+    /**
+     * Scope untuk video yang aktif
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope untuk video yang tidak aktif
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
     }
 
     

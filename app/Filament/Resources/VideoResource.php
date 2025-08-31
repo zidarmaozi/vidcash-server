@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action; // <-- Menggunakan Action biasa
 use Filament\Notifications\Notification; // <-- Impor untuk notifikasi
+use Illuminate\Database\Eloquent\Collection;
 
 class VideoResource extends Resource
 {
@@ -23,6 +24,10 @@ class VideoResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('title')->required(),
                 Forms\Components\Select::make('user_id')->relationship('user', 'name')->required(),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Video Aktif')
+                    ->default(true)
+                    ->helperText('Aktifkan atau nonaktifkan video ini'),
             ]);
     }
 
@@ -32,6 +37,12 @@ class VideoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')->label('Judul')->searchable(),
                 Tables\Columns\TextColumn::make('user.name')->label('Pemilik')->searchable(),
+                Tables\Columns\TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Tidak Aktif')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('generated_link')->label('Link Video')->searchable(),
                 
                 // Views and Performance Metrics
@@ -85,6 +96,13 @@ class VideoResource extends Resource
                     ->relationship('user', 'name')
                     ->label('Filter by User'),
                 
+                Tables\Filters\SelectFilter::make('is_active')
+                    ->label('Status Video')
+                    ->options([
+                        '1' => 'Aktif',
+                        '0' => 'Tidak Aktif',
+                    ]),
+                
                 Tables\Filters\Filter::make('has_views')
                     ->label('Has Views')
                     ->query(fn ($query) => $query->has('views')),
@@ -128,9 +146,47 @@ class VideoResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->url(fn (Video $record) => route('filament.admin.resources.videos.show', $record))
                     ->openUrlInNewTab(),
+                
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('activate')
+                        ->label('Aktifkan Video Terpilih')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Aktifkan Video Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin mengaktifkan semua video yang dipilih?')
+                        ->action(function (Collection $records) {
+                            $records->each(function ($record) {
+                                $record->update(['is_active' => true]);
+                            });
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Video berhasil diaktifkan')
+                                ->success()
+                                ->send();
+                        }),
+                    
+                    Tables\Actions\BulkAction::make('deactivate')
+                        ->label('Nonaktifkan Video Terpilih')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Nonaktifkan Video Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menonaktifkan semua video yang dipilih?')
+                        ->action(function (Collection $records) {
+                            $records->each(function ($record) {
+                                $record->update(['is_active' => false]);
+                            });
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Video berhasil dinonaktifkan')
+                                ->success()
+                                ->send();
+                        }),
+                    
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
