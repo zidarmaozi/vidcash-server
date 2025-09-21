@@ -19,7 +19,15 @@ class CheckRole
         // Jika pengguna tidak login atau tidak punya role yang diizinkan
         if (!Auth::check() || !in_array(Auth::user()->role, $roles)) {
             // Tampilkan halaman error "Tidak diizinkan"
-            abort(403, 'ANDA TIDAK MEMILIKI AKSES KE HALAMAN INI.');
+            // abort(403, 'ANDA TIDAK MEMILIKI AKSES KE HALAMAN INI.');
+            switch (Auth::user()->role) {
+                case 'user':
+                    return redirect()->route('dashboard');
+                case 'admin':
+                    return redirect()->route('admin.dashboard');
+                default:
+                    abort(403, 'ANDA TIDAK MEMILIKI AKSES KE HALAMAN INI.');
+            }
         }
 
         // Jika role cocok, izinkan masuk
