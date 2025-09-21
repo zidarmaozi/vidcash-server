@@ -2,16 +2,19 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\SimpleIncomeStatsWidget;
-use App\Filament\Widgets\SimpleIncomeChartWidget;
+use App\Models\View;
+use App\Models\Withdrawal;
+use App\Models\EventPayout;
+use App\Models\User;
+use App\Models\Video;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class IncomeReportPage extends Page
 {
-    
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
     protected static string $view = 'filament.pages.income-report';
     protected static ?string $title = 'Income Report';
@@ -22,16 +25,164 @@ class IncomeReportPage extends Page
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
     
+    // Computed properties for the view
+    public $totalIncome = 0;
+    public $totalViews = 0;
+    public $validatedViews = 0;
+    public $failedViews = 0;
+    public $avgIncomePerView = 0;
+    public $totalWithdrawals = 0;
+    public $pendingWithdrawals = 0;
+    public $totalEventPayouts = 0;
+    public $netIncome = 0;
+    public $incomeData = [];
+    public $topEarners = [];
+    public $topVideos = [];
+    
     public function mount(): void
     {
         $this->timeFilter = 'week';
-        $this->customStartDate = now()->startOfWeek()->format('Y-m-d');
-        $this->customEndDate = now()->endOfWeek()->format('Y-m-d');
+        $this->updateCustomDates('week');
+        $this->loadData();
     }
     
     public function updatedTimeFilter($value): void
     {
         $this->updateCustomDates($value);
+        $this->loadData();
+    }
+    
+    public function updatedCustomStartDate($value): void
+    {
+        $this->loadData();
+    }
+    
+    public function updatedCustomEndDate($value): void
+    {
+        $this->loadData();
+    }
+    
+    public function loadData(): void
+    {
+        $dateRange = $this->getDateRange();
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
+        
+        // Load basic stats
+        $this->totalIncome = View::where('income_generated', true)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('income_amount');
+            
+        $this->totalViews = View::whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+            
+        $this->validatedViews = View::where('validation_passed', true)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+            
+        $this->failedViews = View::where('validation_passed', false)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+            
+        $this->avgIncomePerView = $this->totalViews > 0 ? $this->totalIncome / $this->totalViews : 0;
+        
+        $this->totalWithdrawals = Withdrawal::where('status', 'confirmed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('amount');
+            
+        $this->pendingWithdrawals = Withdrawal::where('status', 'pending')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('amount');
+            
+        $this->totalEventPayouts = EventPayout::where('status', 'confirmed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('prize_amount');
+            
+        $this->netIncome = $this->totalIncome - $this->totalWithdrawals - $this->totalEventPayouts;
+        
+        // Load chart data
+        $this->loadChartData($startDate, $endDate);
+        
+        // Load top earners
+        $this->loadTopEarners($startDate, $endDate);
+        
+        // Load top videos
+        $this->loadTopVideos($startDate, $endDate);
+    }
+    
+    private function loadChartData($startDate, $endDate): void
+    {
+        $incomeData = View::where('income_generated', true)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(income_amount) as total_income'),
+                DB::raw('COUNT(*) as total_views')
+            )
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+        
+        // Get all dates in range
+        $dates = [];
+        $current = $startDate->copy();
+        while ($current->lte($endDate)) {
+            $dates[] = $current->format('Y-m-d');
+            $current->addDay();
+        }
+        
+        $this->incomeData = [];
+        foreach ($dates as $date) {
+            $dayData = $incomeData->firstWhere('date', $date);
+            $this->incomeData[] = [
+                'date' => Carbon::parse($date)->format('M d'),
+                'income' => $dayData ? (float) $dayData->total_income : 0,
+                'views' => $dayData ? (int) $dayData->total_views : 0,
+            ];
+        }
+    }
+    
+    private function loadTopEarners($startDate, $endDate): void
+    {
+        $this->topEarners = User::withCount(['videos as total_videos'])
+            ->withSum(['videos as total_income' => function ($query) use ($startDate, $endDate) {
+                $query->whereHas('views', function ($q) use ($startDate, $endDate) {
+                    $q->where('income_generated', true)
+                      ->whereBetween('created_at', [$startDate, $endDate]);
+                });
+            }])
+            ->orderBy('total_income', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'name' => $user->name,
+                    'income' => (float) ($user->total_income ?? 0),
+                    'videos' => (int) $user->total_videos,
+                ];
+            })
+            ->toArray();
+    }
+    
+    private function loadTopVideos($startDate, $endDate): void
+    {
+        $this->topVideos = Video::withCount(['views as total_views'])
+            ->withSum(['views as total_income' => function ($query) use ($startDate, $endDate) {
+                $query->where('income_generated', true)
+                      ->whereBetween('created_at', [$startDate, $endDate]);
+            }])
+            ->where('is_active', true)
+            ->orderBy('total_income', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($video) {
+                return [
+                    'title' => strlen($video->title) > 30 ? substr($video->title, 0, 30) . '...' : $video->title,
+                    'income' => (float) ($video->total_income ?? 0),
+                    'views' => (int) $video->total_views,
+                ];
+            })
+            ->toArray();
     }
     
     protected function getHeaderActions(): array
@@ -63,16 +214,12 @@ class IncomeReportPage extends Page
     
     protected function getHeaderWidgets(): array
     {
-        return [
-            SimpleIncomeStatsWidget::class,
-        ];
+        return [];
     }
     
     protected function getFooterWidgets(): array
     {
-        return [
-            SimpleIncomeChartWidget::class,
-        ];
+        return [];
     }
     
     private function updateCustomDates(string $filter): void
