@@ -11,20 +11,22 @@ use Illuminate\Http\Request;
 class ServiceController extends Controller
 {
     // Mengirim pengaturan ke service javascript/halam tonton
-    public function getSettings()
+    public function getSettings($videoCode = null)
     {
         $ipLimitSetting = Setting::where('key', 'ip_view_limit')->first();
         $cpmSetting = Setting::where('key', 'cpm')->first();
         $watchTimeSetting = Setting::where('key', 'watch_time_seconds')->first();
         // Ambil data level validasi default
         $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
+        $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
 
         return response()->json([
             'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
             'cpm' => $cpmSetting ? (int) $cpmSetting->value : 10,
             'watch_time_seconds' => $watchTimeSetting ? (int) $watchTimeSetting->value : 10,
             // TAMBAHKAN KEY INI
-            'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5
+            'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
+            'is_active' => $video ? (bool) $video->is_active : false
         ]);
     }
 
