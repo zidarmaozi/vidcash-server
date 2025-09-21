@@ -4,7 +4,7 @@
         <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    📊 Report Filters
+                    📊 Income Report
                 </h3>
                 <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-500 dark:text-gray-400">
@@ -18,43 +18,10 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Time Period
-                    </label>
-                    <select wire:model.live="timeFilter" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="week">This Week</option>
-                        <option value="last_week">Last Week</option>
-                        <option value="month">This Month</option>
-                        <option value="last_month">Last Month</option>
-                        <option value="quarter">This Quarter</option>
-                        <option value="year">This Year</option>
-                    </select>
-                </div>
-                
-                <div class="flex items-end">
-                    <button wire:click="$refresh" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                        Refresh Data
-                    </button>
-                </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+                <p>📈 Laporan pendapatan platform VidCash</p>
+                <p>💡 Data diupdate secara real-time berdasarkan views yang menghasilkan income</p>
             </div>
-        </div>
-        
-        <!-- Header Widgets - Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach($this->getHeaderWidgets() as $widget)
-                @livewire($widget)
-            @endforeach
-        </div>
-        
-        <!-- Footer Widgets - Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @foreach($this->getFooterWidgets() as $widget)
-                @livewire($widget)
-            @endforeach
         </div>
     </div>
 </x-filament-panels::page>

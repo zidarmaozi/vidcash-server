@@ -8,7 +8,6 @@ use App\Filament\Widgets\TopEarnersWidget;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Carbon;
 
 class IncomeReportPage extends Page
 {
@@ -17,20 +16,7 @@ class IncomeReportPage extends Page
     protected static ?string $title = 'Income Report';
     protected static ?string $navigationLabel = 'Income Report';
     protected static ?int $navigationSort = 2;
-    
-    public ?string $timeFilter = 'week';
-    
-    public function mount(): void
-    {
-        $this->timeFilter = 'week';
-    }
-    
-    public function updatedTimeFilter($value): void
-    {
-        // Filter changed, refresh all widgets
-        $this->dispatch('$refresh');
-    }
-    
+
     protected function getHeaderActions(): array
     {
         return [
@@ -44,7 +30,7 @@ class IncomeReportPage extends Page
                         ->info()
                         ->send();
                 }),
-                
+
             Action::make('refresh')
                 ->label('Refresh Data')
                 ->icon('heroicon-o-arrow-path')
@@ -58,6 +44,18 @@ class IncomeReportPage extends Page
         ];
     }
     
-    // Widgets are rendered manually in the custom view to avoid duplication
+    public function getHeaderWidgets(): array
+    {
+        return [
+            IncomeStatsWidget::class,
+        ];
+    }
     
+    public function getFooterWidgets(): array
+    {
+        return [
+            IncomeChartWidget::class,
+            TopEarnersWidget::class,
+        ];
+    }
 }

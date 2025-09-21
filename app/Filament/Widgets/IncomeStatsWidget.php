@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Models\View;
 use App\Models\Withdrawal;
-use App\Models\EventPayout;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
@@ -12,160 +11,71 @@ use Illuminate\Support\Carbon;
 class IncomeStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
-    
-    public ?string $filter = 'week';
-    
-    protected function getListeners(): array
-    {
-        return [
-            'refresh' => '$refresh',
-        ];
-    }
-    
-    protected function getFilters(): ?array
-    {
-        return [
-            'today' => 'Today',
-            'yesterday' => 'Yesterday',
-            'week' => 'This Week',
-            'last_week' => 'Last Week',
-            'month' => 'This Month',
-            'last_month' => 'Last Month',
-            'quarter' => 'This Quarter',
-            'year' => 'This Year',
-        ];
-    }
-    
+
     protected function getStats(): array
     {
-        $dateRange = $this->getDateRange();
-        $startDate = $dateRange['start'];
-        $endDate = $dateRange['end'];
-        
-        // Income data
-        $totalIncome = View::where('income_generated', true)
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+        $thisWeek = Carbon::now()->startOfWeek();
+        $lastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $thisMonth = Carbon::now()->startOfMonth();
+        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+
+        // Today's income
+        $todayIncome = View::whereDate('created_at', $today)
+            ->where('income_generated', true)
             ->sum('income_amount');
-            
-        $totalViews = View::whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-            
-        $validatedViews = View::where('validation_passed', true)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-            
-        $failedViews = View::where('validation_passed', false)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-            
-        $avgIncomePerView = $totalViews > 0 ? $totalIncome / $totalViews : 0;
-        
-        // Withdrawal data
-        $totalWithdrawals = Withdrawal::where('status', 'confirmed')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('amount');
-            
-        $pendingWithdrawals = Withdrawal::where('status', 'pending')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('amount');
-            
-        // Event payouts
-        $totalEventPayouts = EventPayout::where('status', 'confirmed')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('prize_amount');
-            
-        $netIncome = $totalIncome - $totalWithdrawals - $totalEventPayouts;
-        
+
+        // Yesterday's income
+        $yesterdayIncome = View::whereDate('created_at', $yesterday)
+            ->where('income_generated', true)
+            ->sum('income_amount');
+
+        // This week's income
+        $thisWeekIncome = View::where('created_at', '>=', $thisWeek)
+            ->where('income_generated', true)
+            ->sum('income_amount');
+
+        // Last week's income
+        $lastWeekIncome = View::whereBetween('created_at', [$lastWeek, $thisWeek])
+            ->where('income_generated', true)
+            ->sum('income_amount');
+
+        // This month's income
+        $thisMonthIncome = View::where('created_at', '>=', $thisMonth)
+            ->where('income_generated', true)
+            ->sum('income_amount');
+
+        // Last month's income
+        $lastMonthIncome = View::whereBetween('created_at', [$lastMonth, $thisMonth])
+            ->where('income_generated', true)
+            ->sum('income_amount');
+
+        // Calculate growth
+        $todayGrowth = $yesterdayIncome > 0 ? (($todayIncome - $yesterdayIncome) / $yesterdayIncome) * 100 : 0;
+        $weekGrowth = $lastWeekIncome > 0 ? (($thisWeekIncome - $lastWeekIncome) / $lastWeekIncome) * 100 : 0;
+        $monthGrowth = $lastMonthIncome > 0 ? (($thisMonthIncome - $lastMonthIncome) / $lastMonthIncome) * 100 : 0;
+
         return [
-            Stat::make('💰 Total Income', 'Rp ' . number_format($totalIncome, 0, ',', '.'))
-                ->description("From {$validatedViews} validated views")
+            Stat::make('Hari Ini', 'Rp ' . number_format($todayIncome, 0, ',', '.'))
+                ->description($todayGrowth >= 0 ? '+' . number_format($todayGrowth, 1) . '% dari kemarin' : number_format($todayGrowth, 1) . '% dari kemarin')
+                ->descriptionIcon($todayGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($todayGrowth >= 0 ? 'success' : 'danger'),
+
+            Stat::make('Minggu Ini', 'Rp ' . number_format($thisWeekIncome, 0, ',', '.'))
+                ->description($weekGrowth >= 0 ? '+' . number_format($weekGrowth, 1) . '% dari minggu lalu' : number_format($weekGrowth, 1) . '% dari minggu lalu')
+                ->descriptionIcon($weekGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($weekGrowth >= 0 ? 'success' : 'danger'),
+
+            Stat::make('Bulan Ini', 'Rp ' . number_format($thisMonthIncome, 0, ',', '.'))
+                ->description($monthGrowth >= 0 ? '+' . number_format($monthGrowth, 1) . '% dari bulan lalu' : number_format($monthGrowth, 1) . '% dari bulan lalu')
+                ->descriptionIcon($monthGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($monthGrowth >= 0 ? 'success' : 'danger'),
+
+            Stat::make('Total Views', View::count())
+                ->description('Total semua views')
                 ->descriptionIcon('heroicon-m-eye')
-                ->color('success')
-                ->icon('heroicon-o-currency-dollar'),
-                
-            Stat::make('👁️ Total Views', number_format($totalViews))
-                ->description("Valid: {$validatedViews} | Failed: {$failedViews}")
-                ->descriptionIcon('heroicon-m-chart-bar')
-                ->color('info')
-                ->icon('heroicon-o-eye'),
-                
-            Stat::make('✅ Validation Rate', $totalViews > 0 ? round(($validatedViews / $totalViews) * 100, 1) . '%' : '0%')
-                ->description("Success rate")
-                ->descriptionIcon('heroicon-m-check-circle')
-                ->color($totalViews > 0 && ($validatedViews / $totalViews) >= 0.7 ? 'success' : 'warning')
-                ->icon('heroicon-o-check-circle'),
-                
-            Stat::make('📊 Avg Income/View', 'Rp ' . number_format($avgIncomePerView, 2, ',', '.'))
-                ->description('Average income per view')
-                ->descriptionIcon('heroicon-m-calculator')
-                ->color('info')
-                ->icon('heroicon-o-calculator'),
-                
-            Stat::make('💸 Withdrawals', 'Rp ' . number_format($totalWithdrawals, 0, ',', '.'))
-                ->description("Confirmed withdrawals")
-                ->descriptionIcon('heroicon-m-banknotes')
-                ->color('warning')
-                ->icon('heroicon-o-banknotes'),
-                
-            Stat::make('⏳ Pending', 'Rp ' . number_format($pendingWithdrawals, 0, ',', '.'))
-                ->description("Awaiting approval")
-                ->descriptionIcon('heroicon-m-clock')
-                ->color('danger')
-                ->icon('heroicon-o-clock'),
-                
-            Stat::make('🏆 Event Payouts', 'Rp ' . number_format($totalEventPayouts, 0, ',', '.'))
-                ->description("Event rewards paid out")
-                ->descriptionIcon('heroicon-m-trophy')
-                ->color('success')
-                ->icon('heroicon-o-trophy'),
-                
-            Stat::make('📈 Net Income', 'Rp ' . number_format($netIncome, 0, ',', '.'))
-                ->description("Income minus payouts")
-                ->descriptionIcon('heroicon-m-chart-bar')
-                ->color($netIncome >= 0 ? 'success' : 'danger')
-                ->icon('heroicon-o-chart-bar'),
+                ->color('info'),
         ];
-    }
-    
-    private function getDateRange(): array
-    {
-        return match ($this->filter) {
-            'today' => [
-                'start' => now()->startOfDay(),
-                'end' => now()->endOfDay(),
-            ],
-            'yesterday' => [
-                'start' => now()->subDay()->startOfDay(),
-                'end' => now()->subDay()->endOfDay(),
-            ],
-            'week' => [
-                'start' => now()->startOfWeek(),
-                'end' => now()->endOfWeek(),
-            ],
-            'last_week' => [
-                'start' => now()->subWeek()->startOfWeek(),
-                'end' => now()->subWeek()->endOfWeek(),
-            ],
-            'month' => [
-                'start' => now()->startOfMonth(),
-                'end' => now()->endOfMonth(),
-            ],
-            'last_month' => [
-                'start' => now()->subMonth()->startOfMonth(),
-                'end' => now()->subMonth()->endOfMonth(),
-            ],
-            'quarter' => [
-                'start' => now()->startOfQuarter(),
-                'end' => now()->endOfQuarter(),
-            ],
-            'year' => [
-                'start' => now()->startOfYear(),
-                'end' => now()->endOfYear(),
-            ],
-            default => [
-                'start' => now()->startOfWeek(),
-                'end' => now()->endOfWeek(),
-            ],
-        };
     }
 }
