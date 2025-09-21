@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        <!-- Filter Section - Top of Page -->
+        <!-- 1. FILTER SECTION - Top of Page -->
         <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -56,6 +56,17 @@
                 <p>📈 Laporan pendapatan platform VidCash</p>
                 <p>💡 Data diupdate secara real-time berdasarkan views yang menghasilkan income</p>
             </div>
+        </div>
+
+        <!-- 2. CARDS SECTION - Middle of Page -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @livewire(\App\Filament\Widgets\IncomeStatsWidget::class)
+        </div>
+
+        <!-- 3. CHARTS SECTION - Bottom of Page -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @livewire(\App\Filament\Widgets\IncomeChartWidget::class)
+            @livewire(\App\Filament\Widgets\TopEarnersWidget::class)
         </div>
     </div>
 </x-filament-panels::page>
