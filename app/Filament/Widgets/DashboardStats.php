@@ -78,7 +78,8 @@ class DashboardStats extends BaseWidget
             Stat::make('💸 Financial Overview', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
                 ->description("Pendapatan: Rp" . number_format($totalStoredIncome, 0, ',', '.') . " | Dibayar: Rp" . number_format($totalPaidOut, 0, ',', '.') . " | Saldo: Rp" . number_format($totalUserBalances, 0, ',', '.'))
                 ->icon('heroicon-o-banknotes')
-                ->color('info'),
+                ->color('info')
+                ->url(route('filament.admin.pages.income-report')),
             Stat::make('📋 Withdrawal Status', Withdrawal::count())
                 ->description("Berhasil: " . Withdrawal::where('status', 'confirmed')->count() . " | Pending: " . Withdrawal::where('status', 'pending')->count() . " | Ditolak: " . Withdrawal::where('status', 'rejected')->count())
                 ->icon('heroicon-o-clipboard-document-list')
