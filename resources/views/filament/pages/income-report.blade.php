@@ -6,53 +6,48 @@
                 📊 Report Filters
             </h3>
             
-            <form wire:submit.prevent="save">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select wire:model="data.timeFilter">
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="week">This Week</option>
-                                <option value="last_week">Last Week</option>
-                                <option value="month">This Month</option>
-                                <option value="last_month">Last Month</option>
-                                <option value="quarter">This Quarter</option>
-                                <option value="year">This Year</option>
-                                <option value="custom">Custom Range</option>
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
-                    
-                    @if($data['timeFilter'] === 'custom')
-                        <div>
-                            <x-filament::input.wrapper>
-                                <x-filament::input
-                                    type="date"
-                                    wire:model="data.customStartDate"
-                                    placeholder="Start Date"
-                                />
-                            </x-filament::input.wrapper>
-                        </div>
-                        
-                        <div>
-                            <x-filament::input.wrapper>
-                                <x-filament::input
-                                    type="date"
-                                    wire:model="data.customEndDate"
-                                    placeholder="End Date"
-                                />
-                            </x-filament::input.wrapper>
-                        </div>
-                    @endif
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Time Period
+                    </label>
+                    <select wire:model.live="timeFilter" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="last_week">Last Week</option>
+                        <option value="month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
                 </div>
                 
-                <div class="mt-4">
-                    <x-filament::button type="submit" color="primary">
-                        Apply Filters
-                    </x-filament::button>
-                </div>
-            </form>
+                @if($timeFilter === 'custom')
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Start Date
+                        </label>
+                        <input 
+                            type="date" 
+                            wire:model.live="customStartDate"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            End Date
+                        </label>
+                        <input 
+                            type="date" 
+                            wire:model.live="customEndDate"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        />
+                    </div>
+                @endif
+            </div>
         </div>
         
         <!-- Quick Stats -->
@@ -117,57 +112,6 @@
             </div>
         </div>
         
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                    📈 Income Trend
-                </h3>
-                <div class="h-80">
-                    <canvas id="incomeChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                    👥 Top Earners
-                </h3>
-                <div class="h-80">
-                    <canvas id="earnersChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Additional Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                    🎬 Top Videos
-                </h3>
-                <div class="h-80">
-                    <canvas id="videosChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                    📊 Income Distribution
-                </h3>
-                <div class="h-80">
-                    <canvas id="distributionChart"></canvas>
-                </div>
-            </div>
-        </div>
+        <!-- Widgets will be rendered here by Filament -->
     </div>
-    
-    @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Initialize charts when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // This will be populated by the Filament widgets
-            console.log('Income Report Page Loaded');
-        });
-    </script>
-    @endpush
 </x-filament-panels::page>
