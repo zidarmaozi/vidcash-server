@@ -24,7 +24,7 @@ class CheckRole
                 case 'user':
                     return redirect()->route('dashboard');
                 case 'admin':
-                    return redirect()->route('admin.dashboard');
+                    return redirect()->to('/admin');
                 default:
                     abort(403, 'ANDA TIDAK MEMILIKI AKSES KE HALAMAN INI.');
             }
