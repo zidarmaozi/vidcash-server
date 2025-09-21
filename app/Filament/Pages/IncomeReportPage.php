@@ -58,19 +58,6 @@ class IncomeReportPage extends Page
         ];
     }
     
-    public function getHeaderWidgets(): array
-    {
-        return [
-            IncomeStatsWidget::class,
-        ];
-    }
-    
-    public function getFooterWidgets(): array
-    {
-        return [
-            IncomeChartWidget::class,
-            TopEarnersWidget::class,
-        ];
-    }
+    // Widgets are rendered manually in the custom view to avoid duplication
     
 }
