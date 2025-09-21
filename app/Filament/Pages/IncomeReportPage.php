@@ -145,43 +145,49 @@ class IncomeReportPage extends Page
     private function loadTopEarners($startDate, $endDate): void
     {
         $this->topEarners = User::withCount(['videos as total_videos'])
-            ->withSum(['videos as total_income' => function ($query) use ($startDate, $endDate) {
-                $query->whereHas('views', function ($q) use ($startDate, $endDate) {
-                    $q->where('income_generated', true)
+            ->with(['videos.views' => function ($query) use ($startDate, $endDate) {
+                $query->where('income_generated', true)
                       ->whereBetween('created_at', [$startDate, $endDate]);
-                });
             }])
-            ->orderBy('total_income', 'desc')
-            ->limit(10)
             ->get()
             ->map(function ($user) {
+                $totalIncome = $user->videos->sum(function ($video) {
+                    return $video->views->sum('income_amount');
+                });
+                
                 return [
                     'name' => $user->name,
-                    'income' => (float) ($user->total_income ?? 0),
+                    'income' => (float) $totalIncome,
                     'videos' => (int) $user->total_videos,
                 ];
             })
+            ->sortByDesc('income')
+            ->take(10)
+            ->values()
             ->toArray();
     }
     
     private function loadTopVideos($startDate, $endDate): void
     {
         $this->topVideos = Video::withCount(['views as total_views'])
-            ->withSum(['views as total_income' => function ($query) use ($startDate, $endDate) {
+            ->with(['views' => function ($query) use ($startDate, $endDate) {
                 $query->where('income_generated', true)
                       ->whereBetween('created_at', [$startDate, $endDate]);
             }])
             ->where('is_active', true)
-            ->orderBy('total_income', 'desc')
-            ->limit(10)
             ->get()
             ->map(function ($video) {
+                $totalIncome = $video->views->sum('income_amount');
+                
                 return [
                     'title' => strlen($video->title) > 30 ? substr($video->title, 0, 30) . '...' : $video->title,
-                    'income' => (float) ($video->total_income ?? 0),
+                    'income' => (float) $totalIncome,
                     'views' => (int) $video->total_views,
                 ];
             })
+            ->sortByDesc('income')
+            ->take(10)
+            ->values()
             ->toArray();
     }
     
