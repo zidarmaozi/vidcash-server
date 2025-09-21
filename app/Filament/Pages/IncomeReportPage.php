@@ -66,4 +66,14 @@ class IncomeReportPage extends Page
         ];
     }
     
+    public function getHeaderWidgetsColumns(): int | string | array
+    {
+        return 4;
+    }
+    
+    public function getFooterWidgetsColumns(): int | string | array
+    {
+        return 2;
+    }
+    
 }
