@@ -64,7 +64,7 @@ class IncomeReportPage extends Page
     
     public function loadData(): void
     {
-        $dateRange = $this->getDateRange();
+        $dateRange = $this->getDateRange($this->timeFilter);
         $startDate = $dateRange['start'];
         $endDate = $dateRange['end'];
         
