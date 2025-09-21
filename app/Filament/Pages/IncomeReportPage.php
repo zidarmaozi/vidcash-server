@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\IncomeStatsWidget;
 use App\Filament\Widgets\IncomeChartWidget;
 use App\Filament\Widgets\TopEarnersWidget;
-use App\Filament\Widgets\TopVideosWidget;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -51,29 +50,19 @@ class IncomeReportPage extends Page
         ];
     }
     
-    protected function getHeaderWidgets(): array
+    public function getHeaderWidgets(): array
     {
         return [
             IncomeStatsWidget::class,
         ];
     }
     
-    protected function getFooterWidgets(): array
+    public function getFooterWidgets(): array
     {
         return [
             IncomeChartWidget::class,
             TopEarnersWidget::class,
         ];
-    }
-    
-    public function getHeaderWidgetsColumns(): int | string | array
-    {
-        return 4;
-    }
-    
-    public function getFooterWidgetsColumns(): int | string | array
-    {
-        return 2;
     }
     
 }
