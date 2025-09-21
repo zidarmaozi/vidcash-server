@@ -18,7 +18,41 @@
                 </div>
             </div>
             
-            <div class="text-sm text-gray-600 dark:text-gray-400">
+            <!-- Date Filter -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Pilih Periode
+                    </label>
+                    <select wire:model.live="dateRange" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="today">Hari Ini</option>
+                        <option value="yesterday">Kemarin</option>
+                        <option value="week">7 Hari Terakhir</option>
+                        <option value="month">30 Hari Terakhir</option>
+                        <option value="quarter">3 Bulan Terakhir</option>
+                        <option value="year">1 Tahun Terakhir</option>
+                        <option value="custom">Rentang Kustom</option>
+                    </select>
+                </div>
+                
+                @if($dateRange === 'custom')
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Tanggal Mulai
+                    </label>
+                    <input type="date" wire:model.live="startDate" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Tanggal Akhir
+                    </label>
+                    <input type="date" wire:model.live="endDate" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                @endif
+            </div>
+            
+            <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
                 <p>📈 Laporan pendapatan platform VidCash</p>
                 <p>💡 Data diupdate secara real-time berdasarkan views yang menghasilkan income</p>
             </div>

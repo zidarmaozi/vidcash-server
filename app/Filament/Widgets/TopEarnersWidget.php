@@ -5,20 +5,25 @@ namespace App\Filament\Widgets;
 use App\Models\User;
 use App\Models\View;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
 
 class TopEarnersWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Top 5 Earners (Minggu Ini)';
+    use InteractsWithPageFilters;
+
+    protected static ?string $heading = 'Top 5 Earners';
     protected static ?int $sort = 3;
     protected static ?string $maxHeight = '400px';
 
     protected function getData(): array
     {
-        $thisWeek = Carbon::now()->startOfWeek();
+        $dateRange = $this->getDateRange();
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
         
-        $topEarners = User::with(['videos.views' => function($query) use ($thisWeek) {
-            $query->where('created_at', '>=', $thisWeek)
+        $topEarners = User::with(['videos.views' => function($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate])
                   ->where('income_generated', true);
         }])
         ->get()
@@ -93,5 +98,27 @@ class TopEarnersWidget extends ChartWidget
                 ]
             ]
         ];
+    }
+
+    private function getDateRange(): array
+    {
+        // Get date range from parent page
+        $parentPage = $this->getParentPage();
+        if ($parentPage && method_exists($parentPage, 'getDateRange')) {
+            return $parentPage->getDateRange();
+        }
+
+        // Fallback to today if no parent page
+        return [
+            'start' => Carbon::today(),
+            'end' => Carbon::today()->endOfDay(),
+        ];
+    }
+
+    private function getParentPage()
+    {
+        // Try to get the parent page instance
+        $livewire = app('livewire')->current();
+        return $livewire;
     }
 }

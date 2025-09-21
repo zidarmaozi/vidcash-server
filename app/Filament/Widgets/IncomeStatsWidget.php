@@ -3,79 +3,100 @@
 namespace App\Filament\Widgets;
 
 use App\Models\View;
-use App\Models\Withdrawal;
+use App\Models\Video;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
 
 class IncomeStatsWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 1;
 
     protected function getStats(): array
     {
-        $today = Carbon::today();
-        $yesterday = Carbon::yesterday();
-        $thisWeek = Carbon::now()->startOfWeek();
-        $lastWeek = Carbon::now()->subWeek()->startOfWeek();
-        $thisMonth = Carbon::now()->startOfMonth();
-        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+        $dateRange = $this->getDateRange();
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
 
-        // Today's income
-        $todayIncome = View::whereDate('created_at', $today)
+        // Get data for selected period
+        $totalIncome = View::whereBetween('created_at', [$startDate, $endDate])
             ->where('income_generated', true)
             ->sum('income_amount');
 
-        // Yesterday's income
-        $yesterdayIncome = View::whereDate('created_at', $yesterday)
-            ->where('income_generated', true)
-            ->sum('income_amount');
+        $totalViews = View::whereBetween('created_at', [$startDate, $endDate])
+            ->count();
 
-        // This week's income
-        $thisWeekIncome = View::where('created_at', '>=', $thisWeek)
-            ->where('income_generated', true)
-            ->sum('income_amount');
+        $totalVideos = Video::whereBetween('created_at', [$startDate, $endDate])
+            ->count();
 
-        // Last week's income
-        $lastWeekIncome = View::whereBetween('created_at', [$lastWeek, $thisWeek])
-            ->where('income_generated', true)
-            ->sum('income_amount');
+        $activeVideos = Video::whereBetween('created_at', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->count();
 
-        // This month's income
-        $thisMonthIncome = View::where('created_at', '>=', $thisMonth)
-            ->where('income_generated', true)
-            ->sum('income_amount');
-
-        // Last month's income
-        $lastMonthIncome = View::whereBetween('created_at', [$lastMonth, $thisMonth])
+        // Get previous period for comparison
+        $previousPeriod = $this->getPreviousPeriod($startDate, $endDate);
+        $previousIncome = View::whereBetween('created_at', [$previousPeriod['start'], $previousPeriod['end']])
             ->where('income_generated', true)
             ->sum('income_amount');
 
         // Calculate growth
-        $todayGrowth = $yesterdayIncome > 0 ? (($todayIncome - $yesterdayIncome) / $yesterdayIncome) * 100 : 0;
-        $weekGrowth = $lastWeekIncome > 0 ? (($thisWeekIncome - $lastWeekIncome) / $lastWeekIncome) * 100 : 0;
-        $monthGrowth = $lastMonthIncome > 0 ? (($thisMonthIncome - $lastMonthIncome) / $lastMonthIncome) * 100 : 0;
+        $growth = $previousIncome > 0 ? (($totalIncome - $previousIncome) / $previousIncome) * 100 : 0;
 
         return [
-            Stat::make('Hari Ini', 'Rp ' . number_format($todayIncome, 0, ',', '.'))
-                ->description($todayGrowth >= 0 ? '+' . number_format($todayGrowth, 1) . '% dari kemarin' : number_format($todayGrowth, 1) . '% dari kemarin')
-                ->descriptionIcon($todayGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($todayGrowth >= 0 ? 'success' : 'danger'),
+            Stat::make('Total Pendapatan', 'Rp ' . number_format($totalIncome, 0, ',', '.'))
+                ->description($growth >= 0 ? '+' . number_format($growth, 1) . '% dari periode sebelumnya' : number_format($growth, 1) . '% dari periode sebelumnya')
+                ->descriptionIcon($growth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($growth >= 0 ? 'success' : 'danger'),
 
-            Stat::make('Minggu Ini', 'Rp ' . number_format($thisWeekIncome, 0, ',', '.'))
-                ->description($weekGrowth >= 0 ? '+' . number_format($weekGrowth, 1) . '% dari minggu lalu' : number_format($weekGrowth, 1) . '% dari minggu lalu')
-                ->descriptionIcon($weekGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($weekGrowth >= 0 ? 'success' : 'danger'),
-
-            Stat::make('Bulan Ini', 'Rp ' . number_format($thisMonthIncome, 0, ',', '.'))
-                ->description($monthGrowth >= 0 ? '+' . number_format($monthGrowth, 1) . '% dari bulan lalu' : number_format($monthGrowth, 1) . '% dari bulan lalu')
-                ->descriptionIcon($monthGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($monthGrowth >= 0 ? 'success' : 'danger'),
-
-            Stat::make('Total Views', View::count())
-                ->description('Total semua views')
+            Stat::make('Total Views', number_format($totalViews))
+                ->description('Views dalam periode terpilih')
                 ->descriptionIcon('heroicon-m-eye')
                 ->color('info'),
+
+            Stat::make('Total Video', number_format($totalVideos))
+                ->description('Video dalam periode terpilih')
+                ->descriptionIcon('heroicon-m-video-camera')
+                ->color('warning'),
+
+            Stat::make('Video Aktif', number_format($activeVideos))
+                ->description('Video aktif dalam periode terpilih')
+                ->descriptionIcon('heroicon-m-check-circle')
+                ->color('success'),
+        ];
+    }
+
+    private function getDateRange(): array
+    {
+        // Get date range from parent page
+        $parentPage = $this->getParentPage();
+        if ($parentPage && method_exists($parentPage, 'getDateRange')) {
+            return $parentPage->getDateRange();
+        }
+
+        // Fallback to today if no parent page
+        return [
+            'start' => Carbon::today(),
+            'end' => Carbon::today()->endOfDay(),
+        ];
+    }
+
+    private function getParentPage()
+    {
+        // Try to get the parent page instance
+        $livewire = app('livewire')->current();
+        return $livewire;
+    }
+
+    private function getPreviousPeriod($startDate, $endDate): array
+    {
+        $duration = $endDate->diffInDays($startDate);
+        
+        return [
+            'start' => $startDate->copy()->subDays($duration + 1),
+            'end' => $startDate->copy()->subDay(),
         ];
     }
 }

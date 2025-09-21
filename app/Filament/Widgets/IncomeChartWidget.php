@@ -4,29 +4,60 @@ namespace App\Filament\Widgets;
 
 use App\Models\View;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
 
 class IncomeChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Income Trend (7 Hari Terakhir)';
+    use InteractsWithPageFilters;
+
+    protected static ?string $heading = 'Income Trend';
     protected static ?int $sort = 2;
     protected static ?string $maxHeight = '400px';
 
     protected function getData(): array
     {
+        $dateRange = $this->getDateRange();
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
+
         $data = [];
         $labels = [];
 
-        // Get last 7 days
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $labels[] = $date->format('M d');
-            
-            $income = View::whereDate('created_at', $date)
-                ->where('income_generated', true)
-                ->sum('income_amount');
-            
-            $data[] = $income;
+        // Determine interval based on date range
+        $interval = $this->getInterval($startDate, $endDate);
+        
+        if ($interval === 'daily') {
+            // Daily data
+            $current = $startDate->copy();
+            while ($current->lte($endDate)) {
+                $labels[] = $current->format('M d');
+                
+                $income = View::whereDate('created_at', $current)
+                    ->where('income_generated', true)
+                    ->sum('income_amount');
+                
+                $data[] = $income;
+                $current->addDay();
+            }
+        } else {
+            // Weekly data
+            $current = $startDate->copy()->startOfWeek();
+            while ($current->lte($endDate)) {
+                $weekEnd = $current->copy()->endOfWeek();
+                if ($weekEnd->gt($endDate)) {
+                    $weekEnd = $endDate;
+                }
+                
+                $labels[] = $current->format('M d') . ' - ' . $weekEnd->format('M d');
+                
+                $income = View::whereBetween('created_at', [$current, $weekEnd])
+                    ->where('income_generated', true)
+                    ->sum('income_amount');
+                
+                $data[] = $income;
+                $current->addWeek();
+            }
         }
 
         return [
@@ -72,5 +103,35 @@ class IncomeChartWidget extends ChartWidget
                 ]
             ]
         ];
+    }
+
+    private function getDateRange(): array
+    {
+        // Get date range from parent page
+        $parentPage = $this->getParentPage();
+        if ($parentPage && method_exists($parentPage, 'getDateRange')) {
+            return $parentPage->getDateRange();
+        }
+
+        // Fallback to today if no parent page
+        return [
+            'start' => Carbon::today(),
+            'end' => Carbon::today()->endOfDay(),
+        ];
+    }
+
+    private function getParentPage()
+    {
+        // Try to get the parent page instance
+        $livewire = app('livewire')->current();
+        return $livewire;
+    }
+
+    private function getInterval($startDate, $endDate): string
+    {
+        $days = $startDate->diffInDays($endDate);
+        
+        // If more than 30 days, use weekly intervals
+        return $days > 30 ? 'weekly' : 'daily';
     }
 }
