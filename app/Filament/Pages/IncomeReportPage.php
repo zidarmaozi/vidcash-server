@@ -18,9 +18,17 @@ class IncomeReportPage extends Page
     protected static ?string $navigationLabel = 'Income Report';
     protected static ?int $navigationSort = 2;
     
+    public ?string $timeFilter = 'week';
+    
     public function mount(): void
     {
-        // Page initialization if needed
+        $this->timeFilter = 'week';
+    }
+    
+    public function updatedTimeFilter($value): void
+    {
+        // Filter changed, refresh all widgets
+        $this->dispatch('$refresh');
     }
     
     protected function getHeaderActions(): array

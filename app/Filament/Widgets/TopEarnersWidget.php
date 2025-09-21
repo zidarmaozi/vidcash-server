@@ -14,6 +14,13 @@ class TopEarnersWidget extends ChartWidget
     
     public ?string $filter = 'week';
     
+    protected function getListeners(): array
+    {
+        return [
+            'refresh' => '$refresh',
+        ];
+    }
+    
     protected function getFilters(): ?array
     {
         return [
