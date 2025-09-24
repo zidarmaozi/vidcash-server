@@ -26,6 +26,7 @@ class ServiceController extends Controller
             'watch_time_seconds' => $watchTimeSetting ? (int) $watchTimeSetting->value : 10,
             // TAMBAHKAN KEY INI
             'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
+            'is_available' => (bool) $video,
             'is_active' => $video ? (bool) $video->is_active : false
         ]);
     }
