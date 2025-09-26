@@ -21,6 +21,8 @@ class DateRangeFilter extends Component
                     'yesterday' => 'Kemarin',
                     'week' => '7 Hari Terakhir',
                     'month' => 'Bulan Ini',
+                    'last_month' => 'Bulan Lalu',
+                    'two_months_ago' => '2 Bulan Lalu',
                     'custom' => 'Rentang Kustom',
                 ])
                 ->default('all')
@@ -76,6 +78,16 @@ class DateRangeFilter extends Component
                 return [
                     'start' => $now->copy()->startOfMonth(),
                     'end' => $now->copy()->endOfMonth(),
+                ];
+            case 'last_month':
+                return [
+                    'start' => $now->copy()->subMonth()->startOfMonth(),
+                    'end' => $now->copy()->subMonth()->endOfMonth(),
+                ];
+            case 'two_months_ago':
+                return [
+                    'start' => $now->copy()->subMonths(2)->startOfMonth(),
+                    'end' => $now->copy()->subMonths(2)->endOfMonth(),
                 ];
             case 'custom':
                 return [
