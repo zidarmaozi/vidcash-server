@@ -55,6 +55,12 @@ class FilteredFinancialOverview extends BaseWidget
             // Calculate current user balances (this is always current, not filtered by date)
             $totalUserBalances = User::sum('balance');
             
+            // Calculate users registered in the date range
+            $usersInRange = User::query()
+                ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
+                ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
+                ->count();
+            
             // Optimize withdrawal queries with single query
             $withdrawalStats = Withdrawal::selectRaw('
                 SUM(CASE WHEN status = "confirmed" THEN amount ELSE 0 END) as total_confirmed,
@@ -111,6 +117,11 @@ class FilteredFinancialOverview extends BaseWidget
                 ->description('Belum ditarik (selalu current)')
                 ->icon('heroicon-o-wallet')
                 ->color('warning'),
+            
+            Stat::make('Pengguna ' . $dateRangeLabel, number_format($usersInRange))
+                ->description('Pengguna yang terdaftar dalam periode ini')
+                ->icon('heroicon-o-user-plus')
+                ->color('primary'),
             
             Stat::make('Pending (Withdrawal + Event)', 'Rp' . number_format($pendingWithdrawals + $pendingEventPayouts, 0, ',', '.'))
                 ->description("Penarikan: Rp" . number_format($pendingWithdrawals, 0, ',', '.') . " + Event: Rp" . number_format($pendingEventPayouts, 0, ',', '.') . " ({$dateRangeLabel})")

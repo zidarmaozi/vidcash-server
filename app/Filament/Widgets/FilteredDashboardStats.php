@@ -68,6 +68,12 @@ class FilteredDashboardStats extends BaseWidget
             // Calculate current user balances (this is always current, not filtered by date)
             $totalUserBalances = User::sum('balance');
             
+            // Calculate users registered in the date range
+            $usersInRange = User::query()
+                ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
+                ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
+                ->count();
+            
             // Calculate total paid out (withdrawals + event payouts)
             $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
 
@@ -89,6 +95,10 @@ class FilteredDashboardStats extends BaseWidget
             Stat::make('Total Pengguna', User::count())
                 ->description('Total pengguna terdaftar')
                 ->icon('heroicon-o-users'),
+            Stat::make('Pengguna ' . $dateRangeLabel, number_format($usersInRange))
+                ->description('Pengguna yang terdaftar dalam periode ini')
+                ->icon('heroicon-o-user-plus')
+                ->color('primary'),
             Stat::make('Total Video', Video::count())
                 ->description(Video::where('is_active', true)->count() . ' Aktif | ' . Video::where('is_active', false)->count() . ' Tidak Aktif')
                 ->icon('heroicon-o-video-camera')
