@@ -30,62 +30,61 @@ class FilteredFinancialOverview extends BaseWidget
     protected function getStats(): array
     {
         $query = $this->buildDateQuery();
+        $cacheKey = 'financial_overview_' . md5(serialize($query));
         
-        // Get current CPM setting for comparison
-        $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
-        
-        // Calculate total platform income from STORED income amounts
-        $totalStoredIncome = View::where('income_generated', true)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('income_amount');
+        return cache()->remember($cacheKey, 60, function () use ($query) {
+            // Get current CPM setting for comparison
+            $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
             
-        $totalViews = View::query()
+            // Optimize View queries with single query using conditional aggregation
+            $viewStats = View::selectRaw('
+                SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_stored_income,
+                COUNT(*) as total_views,
+                SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as total_validated_views,
+                SUM(CASE WHEN validation_passed = 0 THEN 1 ELSE 0 END) as total_failed_views
+            ')
             ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
             ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
+            ->first();
             
-        $totalValidatedViews = View::where('validation_passed', true)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
+            $totalStoredIncome = $viewStats->total_stored_income ?? 0;
+            $totalViews = $viewStats->total_views ?? 0;
+            $totalValidatedViews = $viewStats->total_validated_views ?? 0;
+            $totalFailedViews = $viewStats->total_failed_views ?? 0;
             
-        $totalFailedViews = View::where('validation_passed', false)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
-        
-        // Calculate current user balances (this is always current, not filtered by date)
-        $totalUserBalances = User::sum('balance');
-        
-        // Calculate total paid out (withdrawals + event payouts)
-        $totalWithdrawals = Withdrawal::where('status', 'confirmed')
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('amount');
+            // Calculate current user balances (this is always current, not filtered by date)
+            $totalUserBalances = User::sum('balance');
             
-        $totalEventPayouts = EventPayout::where('status', 'confirmed')
+            // Optimize withdrawal queries with single query
+            $withdrawalStats = Withdrawal::selectRaw('
+                SUM(CASE WHEN status = "confirmed" THEN amount ELSE 0 END) as total_confirmed,
+                SUM(CASE WHEN status = "pending" THEN amount ELSE 0 END) as total_pending
+            ')
             ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
             ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('prize_amount');
+            ->first();
             
-        $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
-        
-        // Calculate pending amounts
-        $pendingWithdrawals = Withdrawal::where('status', 'pending')
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('amount');
+            $totalWithdrawals = $withdrawalStats->total_confirmed ?? 0;
+            $pendingWithdrawals = $withdrawalStats->total_pending ?? 0;
             
-        $pendingEventPayouts = EventPayout::where('status', 'pending')
+            // Optimize event payout queries with single query
+            $eventPayoutStats = EventPayout::selectRaw('
+                SUM(CASE WHEN status = "confirmed" THEN prize_amount ELSE 0 END) as total_confirmed,
+                SUM(CASE WHEN status = "pending" THEN prize_amount ELSE 0 END) as total_pending
+            ')
             ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
             ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('prize_amount');
-        
-        // Calculate net platform profit (if any)
-        $netPlatformProfit = $totalStoredIncome - $totalPaidOut - $totalUserBalances;
+            ->first();
+            
+            $totalEventPayouts = $eventPayoutStats->total_confirmed ?? 0;
+            $pendingEventPayouts = $eventPayoutStats->total_pending ?? 0;
+            
+            $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
+            
+            // Calculate net platform profit (if any)
+            $netPlatformProfit = $totalStoredIncome - $totalPaidOut - $totalUserBalances;
 
-        $dateRangeLabel = $this->getDateRangeLabel();
+            $dateRangeLabel = $this->getDateRangeLabel();
 
         return [
             Stat::make('💰 TOTAL PENDAPATAN PLATFORM (STORED)', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -123,6 +122,7 @@ class FilteredFinancialOverview extends BaseWidget
                 ->icon('heroicon-o-chart-bar')
                 ->color($netPlatformProfit >= 0 ? 'success' : 'danger'),
         ];
+        });
     }
 
     private function buildDateQuery(): array

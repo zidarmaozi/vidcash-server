@@ -28,48 +28,50 @@ class FilteredDashboardStats extends BaseWidget
     protected function getStats(): array
     {
         $query = $this->buildDateQuery();
+        $cacheKey = 'dashboard_stats_' . md5(serialize($query));
         
-        $totalWithdrawals = Withdrawal::where('status', 'confirmed')
+        return cache()->remember($cacheKey, 60, function () use ($query) {
+            // Optimize queries with single query using conditional aggregation
+            $viewStats = View::selectRaw('
+                SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_stored_income,
+                COUNT(*) as total_views,
+                SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as total_validated_views,
+                SUM(CASE WHEN validation_passed = 0 THEN 1 ELSE 0 END) as total_failed_views
+            ')
             ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
             ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('amount');
+            ->first();
             
-        $totalEventPayouts = \App\Models\EventPayout::where('status', 'confirmed')
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('prize_amount');
-        
-        // Calculate total platform income from STORED income amounts
-        $totalStoredIncome = View::where('income_generated', true)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->sum('income_amount');
+            $totalStoredIncome = $viewStats->total_stored_income ?? 0;
+            $totalViews = $viewStats->total_views ?? 0;
+            $totalValidatedViews = $viewStats->total_validated_views ?? 0;
+            $totalFailedViews = $viewStats->total_failed_views ?? 0;
             
-        $totalViews = View::query()
+            // Optimize withdrawal queries
+            $withdrawalStats = Withdrawal::selectRaw('
+                SUM(CASE WHEN status = "confirmed" THEN amount ELSE 0 END) as total_confirmed
+            ')
             ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
             ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
+            ->first();
             
-        $totalValidatedViews = View::where('validation_passed', true)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
+            $totalWithdrawals = $withdrawalStats->total_confirmed ?? 0;
             
-        $totalFailedViews = View::where('validation_passed', false)
-            ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
-            ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
-            ->count();
-        
-        // Get current CPM for comparison
-        $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
-        
-        // Calculate current user balances (this is always current, not filtered by date)
-        $totalUserBalances = User::sum('balance');
-        
-        // Calculate total paid out (withdrawals + event payouts)
-        $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
+            $totalEventPayouts = \App\Models\EventPayout::where('status', 'confirmed')
+                ->when($query['start'], fn($q) => $q->where('created_at', '>=', $query['start']))
+                ->when($query['end'], fn($q) => $q->where('created_at', '<=', $query['end']))
+                ->sum('prize_amount');
+            
+            // Get current CPM for comparison
+            $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
+            
+            // Calculate current user balances (this is always current, not filtered by date)
+            $totalUserBalances = User::sum('balance');
+            
+            // Calculate total paid out (withdrawals + event payouts)
+            $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
 
-        $dateRangeLabel = $this->getDateRangeLabel();
+            $dateRangeLabel = $this->getDateRangeLabel();
 
         return [
             Stat::make('💰 Total Pendapatan Platform', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -123,6 +125,7 @@ class FilteredDashboardStats extends BaseWidget
                 ->icon('heroicon-o-clipboard-document-list')
                 ->color('warning'),
         ];
+        });
     }
 
     private function buildDateQuery(): array
