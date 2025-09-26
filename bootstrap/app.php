@@ -14,10 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
         // Daftarkan middleware role kita dengan nama 'role'
-    $middleware->alias([
-        'role' => \App\Http\Middleware\CheckRole::class
-    ]);
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class
+        ]);
 
+        $middleware->validateCsrfTokens([
+            '/api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
