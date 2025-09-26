@@ -8,7 +8,7 @@
         {{-- Widgets --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             @foreach ($this->getWidgets() as $widget)
-                @livewire($widget, ['dateRange' => $this->getDateRange()])
+                @livewire($widget, ['dateRange' => $this->getDateRange()], key($widget . '-' . ($this->data['date_range'] ?? 'all') . '-' . ($this->data['start_date'] ?? '') . '-' . ($this->data['end_date'] ?? '')))
             @endforeach
         </div>
     </div>

@@ -24,9 +24,11 @@ class FilteredDashboard extends Page implements HasForms
     protected static ?string $navigationLabel = 'Dashboard Filter';
     protected static ?int $navigationSort = 1;
 
-    public ?string $date_range = 'all';
-    public ?string $start_date = null;
-    public ?string $end_date = null;
+    public array $data = [
+        'date_range' => 'all',
+        'start_date' => null,
+        'end_date' => null,
+    ];
 
     public function mount(): void
     {
@@ -43,7 +45,8 @@ class FilteredDashboard extends Page implements HasForms
                     ->collapsed(false)
                     ->compact(),
             ])
-            ->statePath('data');
+            ->statePath('data')
+            ->live();
     }
 
     public function getWidgets(): array
@@ -64,9 +67,9 @@ class FilteredDashboard extends Page implements HasForms
     public function getDateRange(): array
     {
         return DateRangeFilter::getDateRange(
-            $this->date_range,
-            $this->start_date,
-            $this->end_date
+            $this->data['date_range'] ?? 'all',
+            $this->data['start_date'] ?? null,
+            $this->data['end_date'] ?? null
         );
     }
 }

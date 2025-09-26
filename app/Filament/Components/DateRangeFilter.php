@@ -24,7 +24,7 @@ class DateRangeFilter extends Component
                     'custom' => 'Rentang Kustom',
                 ])
                 ->default('all')
-                ->reactive()
+                ->live()
                 ->afterStateUpdated(function (Set $set, $state) {
                     if ($state !== 'custom') {
                         $set('start_date', null);
@@ -35,12 +35,12 @@ class DateRangeFilter extends Component
             DatePicker::make('start_date')
                 ->label('Tanggal Mulai')
                 ->visible(fn (Get $get): bool => $get($name) === 'custom')
-                ->reactive(),
+                ->live(),
                 
             DatePicker::make('end_date')
                 ->label('Tanggal Akhir')
                 ->visible(fn (Get $get): bool => $get($name) === 'custom')
-                ->reactive()
+                ->live()
                 ->afterStateUpdated(function (Set $set, Get $get) {
                     $startDate = $get('start_date');
                     $endDate = $get('end_date');
