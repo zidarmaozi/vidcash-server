@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Video;
 use App\Models\View;
+use App\Models\VideoReport;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -128,5 +129,37 @@ class ServiceController extends Controller
     private function getCpm()
     {
         return (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
+    }
+
+    // API endpoint untuk report video
+    public function reportVideo(Request $request)
+    {
+        $validated = $request->validate([
+            'video_code' => 'required|exists:videos,video_code',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $video = Video::where('video_code', $validated['video_code'])->first();
+        $ipAddress = $request->ip();
+
+        // Rate limiting: Check if IP has reported this video within 6 hours
+        if (VideoReport::hasRecentReport($video->id, $ipAddress)) {
+            // Silent ignore - return success response
+            return response()->json([
+                'message' => 'Report submitted successfully.'
+            ]);
+        }
+
+        // Create new report
+        VideoReport::create([
+            'video_id' => $video->id,
+            'description' => $validated['description'],
+            'reporter_ip' => $ipAddress,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'message' => 'Report submitted successfully.'
+        ]);
     }
 }

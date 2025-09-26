@@ -9,6 +9,7 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Grid;
 use Filament\Actions;
+use Illuminate\Support\Str;
 
 class ShowVideo extends ViewRecord
 {
@@ -32,6 +33,32 @@ class ShowVideo extends ViewRecord
                     $status = $this->record->is_active ? 'diaktifkan' : 'dinonaktifkan';
                     \Filament\Notifications\Notification::make()
                         ->title("Video berhasil {$status}")
+                        ->success()
+                        ->send();
+                }),
+            
+            Actions\Action::make('viewReports')
+                ->label(fn () => 'View All Reports (' . $this->record->reports()->count() . ')')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->url(fn () => route('filament.admin.resources.video-reports.index', ['tableFilters' => ['video_id' => ['value' => $this->record->id]]]))
+                ->openUrlInNewTab()
+                ->visible(fn () => $this->record->reports()->count() > 0)
+                ->color('warning'),
+            
+            Actions\Action::make('markReportsReviewed')
+                ->label(fn () => 'Mark All Pending Reports as Reviewed (' . $this->record->reports()->where('status', 'pending')->count() . ')')
+                ->icon('heroicon-o-check-circle')
+                ->color('info')
+                ->requiresConfirmation()
+                ->modalHeading('Mark All Pending Reports as Reviewed')
+                ->modalDescription('Are you sure you want to mark all pending reports for this video as reviewed?')
+                ->visible(fn () => $this->record->reports()->where('status', 'pending')->count() > 0)
+                ->action(function () {
+                    $pendingCount = $this->record->reports()->where('status', 'pending')->count();
+                    $this->record->reports()->where('status', 'pending')->update(['status' => 'reviewed']);
+                    
+                    \Filament\Notifications\Notification::make()
+                        ->title("{$pendingCount} pending reports marked as reviewed")
                         ->success()
                         ->send();
                 }),
@@ -252,6 +279,61 @@ class ShowVideo extends ViewRecord
                             ->prose(),
                     ])
                     ->collapsible(),
+
+                Section::make('Video Reports')
+                    ->schema([
+                        TextEntry::make('reports_summary')
+                            ->label('Reports Summary')
+                            ->getStateUsing(function ($record) {
+                                $totalReports = $record->reports()->count();
+                                $pendingReports = $record->reports()->where('status', 'pending')->count();
+                                $reviewedReports = $record->reports()->where('status', 'reviewed')->count();
+                                $resolvedReports = $record->reports()->where('status', 'resolved')->count();
+                                
+                                if ($totalReports === 0) {
+                                    return 'No reports yet';
+                                }
+                                
+                                return "Total: {$totalReports} | Pending: {$pendingReports} | Reviewed: {$reviewedReports} | Resolved: {$resolvedReports}";
+                            })
+                            ->markdown()
+                            ->prose()
+                            ->color(fn ($record) => $record->reports()->where('status', 'pending')->count() > 0 ? 'warning' : 'success'),
+                        
+                        TextEntry::make('recent_reports')
+                            ->label('Recent Reports (Last 10)')
+                            ->getStateUsing(function ($record) {
+                                $recentReports = $record->reports()
+                                    ->latest()
+                                    ->limit(10)
+                                    ->get();
+                                
+                                if ($recentReports->isEmpty()) {
+                                    return 'No reports yet';
+                                }
+                                
+                                $reportList = $recentReports->map(function ($report) {
+                                    $statusIcon = match($report->status) {
+                                        'pending' => '🟡',
+                                        'reviewed' => '🔵',
+                                        'resolved' => '🟢',
+                                        default => '⚪'
+                                    };
+                                    
+                                    $time = $report->created_at->format('M d, H:i');
+                                    $ip = $report->reporter_ip;
+                                    $description = $report->description ? Str::limit($report->description, 50) : 'No description';
+                                    
+                                    return "- {$statusIcon} **{$time}** - IP: `{$ip}` - {$description}";
+                                })->join("\n");
+                                
+                                return $reportList;
+                            })
+                            ->markdown()
+                            ->prose(),
+                    ])
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->reports()->count() > 0),
             ]);
     }
 }

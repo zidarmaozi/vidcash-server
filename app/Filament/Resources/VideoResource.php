@@ -101,6 +101,21 @@ class VideoResource extends Resource
                     })
                     ->color('gray'),
                 
+                // Reports column
+                Tables\Columns\TextColumn::make('reports_count')
+                    ->label('Reports')
+                    ->counts('reports')
+                    ->sortable()
+                    ->color('warning'),
+                
+                Tables\Columns\TextColumn::make('pending_reports_count')
+                    ->label('Pending Reports')
+                    ->getStateUsing(function (Video $record) {
+                        return $record->reports()->where('status', 'pending')->count();
+                    })
+                    ->badge()
+                    ->color(fn (int $state): string => $state > 0 ? 'danger' : 'success'),
+                
                 Tables\Columns\TextColumn::make('created_at')->label('Tanggal Dibuat')->dateTime()->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
@@ -123,6 +138,14 @@ class VideoResource extends Resource
                 Tables\Filters\Filter::make('no_views')
                     ->label('No Views')
                     ->query(fn ($query) => $query->doesntHave('views')),
+                
+                Tables\Filters\Filter::make('has_reports')
+                    ->label('Has Reports')
+                    ->query(fn ($query) => $query->has('reports')),
+                
+                Tables\Filters\Filter::make('has_pending_reports')
+                    ->label('Has Pending Reports')
+                    ->query(fn ($query) => $query->whereHas('reports', fn ($q) => $q->where('status', 'pending'))),
             ])
             ->actions([
                 // Copy video code action
@@ -158,6 +181,15 @@ class VideoResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->url(fn (Video $record) => route('filament.admin.resources.videos.show', $record))
                     ->openUrlInNewTab(),
+                
+                // View reports action
+                Action::make('viewReports')
+                    ->label('View Reports')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->url(fn (Video $record) => route('filament.admin.resources.video-reports.index', ['tableFilters' => ['video_id' => ['value' => $record->id]]]))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Video $record) => $record->reports()->count() > 0)
+                    ->color('warning'),
                 
 
             ])

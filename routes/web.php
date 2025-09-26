@@ -9,6 +9,7 @@ use App\Http\Controllers\WithdrawalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Api\ServiceController;
 
 // Rute ini untuk landing page dan bisa diakses publik
 Route::get('/', function () {
@@ -53,5 +54,7 @@ Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leade
 
 Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
+// API Routes untuk service eksternal
+Route::post('/api/report-video', [ServiceController::class, 'reportVideo'])->name('api.report-video');
 
 require __DIR__.'/auth.php';

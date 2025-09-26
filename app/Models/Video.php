@@ -108,4 +108,14 @@ public function user()
     return $this->belongsTo(User::class);
 }
 
+public function reports()
+{
+    return $this->hasMany(VideoReport::class);
+}
+
+public function pendingReports()
+{
+    return $this->hasMany(VideoReport::class)->where('status', 'pending');
+}
+
 }
