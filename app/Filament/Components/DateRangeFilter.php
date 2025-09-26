@@ -56,31 +56,37 @@ class DateRangeFilter extends Component
     {
         $now = now();
         
-        return match ($dateRange) {
-            'today' => [
-                'start' => $now->copy()->startOfDay(),
-                'end' => $now->copy()->endOfDay(),
-            ],
-            'yesterday' => [
-                'start' => $now->copy()->subDay()->startOfDay(),
-                'end' => $now->copy()->subDay()->endOfDay(),
-            ],
-            'week' => [
-                'start' => $now->copy()->subDays(7)->startOfDay(),
-                'end' => $now->copy()->endOfDay(),
-            ],
-            'month' => [
-                'start' => $now->copy()->startOfMonth(),
-                'end' => $now->copy()->endOfMonth(),
-            ],
-            'custom' => [
-                'start' => $startDate ? $now->copy()->parse($startDate)->startOfDay() : null,
-                'end' => $endDate ? $now->copy()->parse($endDate)->endOfDay() : null,
-            ],
-            default => [
-                'start' => null,
-                'end' => null,
-            ],
-        };
+        switch ($dateRange) {
+            case 'today':
+                return [
+                    'start' => $now->copy()->startOfDay(),
+                    'end' => $now->copy()->endOfDay(),
+                ];
+            case 'yesterday':
+                return [
+                    'start' => $now->copy()->subDay()->startOfDay(),
+                    'end' => $now->copy()->subDay()->endOfDay(),
+                ];
+            case 'week':
+                return [
+                    'start' => $now->copy()->subDays(7)->startOfDay(),
+                    'end' => $now->copy()->endOfDay(),
+                ];
+            case 'month':
+                return [
+                    'start' => $now->copy()->startOfMonth(),
+                    'end' => $now->copy()->endOfMonth(),
+                ];
+            case 'custom':
+                return [
+                    'start' => $startDate ? $now->copy()->parse($startDate)->startOfDay() : null,
+                    'end' => $endDate ? $now->copy()->parse($endDate)->endOfDay() : null,
+                ];
+            default:
+                return [
+                    'start' => null,
+                    'end' => null,
+                ];
+        }
     }
 }

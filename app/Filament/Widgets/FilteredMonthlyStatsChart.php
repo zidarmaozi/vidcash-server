@@ -16,7 +16,13 @@ class FilteredMonthlyStatsChart extends ChartWidget
 
     public function mount(?array $dateRange = null): void
     {
+        // Initialize with parameter from parent or default values
         $this->dateRange = $dateRange ?? ['start' => null, 'end' => null];
+    }
+
+    public function updatedDateRange(): void
+    {
+        // This will be called when dateRange is updated from parent
     }
 
     protected function getData(): array

@@ -12,7 +12,6 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
-use Illuminate\Contracts\Support\Htmlable;
 
 class FilteredDashboard extends Page implements HasForms
 {
