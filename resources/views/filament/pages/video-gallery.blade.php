@@ -71,14 +71,13 @@
             @if($videos->total() > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($videos as $video)
-                        <a href="{{ route('filament.admin.resources.videos.show', $video) }}" 
-                           class="group block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300">
                             
-                            {{-- Thumbnail Image - Fixed aspect ratio --}}
-                            <div class="relative w-full pt-[56.25%] bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
+                            {{-- Thumbnail Image --}}
+                            <a href="{{ route('filament.admin.resources.videos.show', $video) }}" class="group block relative overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" style="height: 200px;">
                                 <img src="{{ $video->thumbnail_url }}" 
                                      alt="{{ $video->title }}" 
-                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                                      loading="lazy" />
                                 
                                 {{-- Status Badge --}}
@@ -108,13 +107,15 @@
                                         </svg>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
 
                             {{-- Video Info --}}
                             <div class="p-4">
-                                <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-3 line-clamp-2 h-[3rem] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
-                                    {{ $video->title }}
-                                </h3>
+                                <a href="{{ route('filament.admin.resources.videos.show', $video) }}" class="group">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-3 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" style="min-height: 3rem;">
+                                        {{ $video->title }}
+                                    </h3>
+                                </a>
                                 
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -132,7 +133,7 @@
                                         <span class="font-mono text-xs">{{ $video->video_code }}</span>
                                     </div>
 
-                                    <div class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
                                         <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -150,7 +151,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     @endforeach
                 </div>
 
