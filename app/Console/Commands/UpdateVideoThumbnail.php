@@ -28,8 +28,13 @@ class UpdateVideoThumbnail extends Command
      */
     public function handle()
     {
-        $videos = Video::whereNull('thumbnail_path')->where('is_active', true)->get();
-        foreach ($videos as $video) {
+        while (true) {
+            $video = $this->getWaitingVideo();
+
+            if (!$video) {
+                break;
+            }
+
             $this->info("Processing video: {$video->video_code}");
             $thumbnailPath = $this->downloadThumbnail($video->video_code);
             if ($thumbnailPath) {
@@ -40,6 +45,13 @@ class UpdateVideoThumbnail extends Command
                 $this->error("Failed to generate thumbnail for video: {$video->video_code}");
             }
         }
+    }
+
+    protected function getWaitingVideo() {
+        return Video::whereNull('thumbnail_path')
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->first();
     }
 
     protected function downloadThumbnail($videoCode)
