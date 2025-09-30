@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Models\Video;
 use App\Models\View;
 use App\Models\VideoReport;
+use Cache;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -20,11 +21,16 @@ class ServiceController extends Controller
         // Ambil data level validasi default
         $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
         $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
-        $relatedVideos = $video ? Video::select(['id', 'title', 'video_code'])
-            ->where('id', '!=', $video->id)
-            ->inRandomOrder()
-            ->take(10)
-            ->get() : [];
+        $relatedVideos = Cache::remember("related_videos_{$videoCode}", 300, function() use ($video) {
+            return Video::select('id', 'video_code', 'title')
+                ->when($video, function($query) use ($video) {
+                    $query->where('id', '!=', $video->id);
+                })
+                ->where('is_active', true)
+                ->inRandomOrder()
+                ->take(5)
+                ->get();
+        });
 
         return response()->json([
             'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
