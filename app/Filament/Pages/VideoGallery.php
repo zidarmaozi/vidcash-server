@@ -9,10 +9,11 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Livewire\WithPagination;
 
 class VideoGallery extends Page implements HasForms
 {
-    use InteractsWithForms;
+    use InteractsWithForms, WithPagination;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
     protected static string $view = 'filament.pages.video-gallery';
@@ -25,6 +26,8 @@ class VideoGallery extends Page implements HasForms
         'search' => '',
         'status' => 'all',
     ];
+
+    public int $perPage = 12;
 
     public function mount(): void
     {
@@ -78,7 +81,13 @@ class VideoGallery extends Page implements HasForms
             }
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('created_at', 'desc')->paginate($this->perPage);
+    }
+    
+    public function updatedData(): void
+    {
+        // Reset to first page when filters change
+        $this->resetPage();
     }
 
     public function getStats(): array
