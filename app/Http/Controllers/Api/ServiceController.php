@@ -45,9 +45,7 @@ class ServiceController extends Controller
                 ->get();
         });
 
-        return response()->json([
-            'related_videos' => $relatedVideos
-        ]);
+        return response()->json($relatedVideos);
     }
 
     // Menerima perintah untuk mencatat view dari service Node.js
