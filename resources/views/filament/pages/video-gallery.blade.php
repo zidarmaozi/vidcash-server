@@ -157,17 +157,17 @@
 
                 {{-- Pagination Controls --}}
                 @if($videos->hasPages())
-                    <div class="mt-8">
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <div class="mt-12">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-6 py-5">
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 {{-- Results Info --}}
-                                <div class="text-sm text-gray-700 dark:text-gray-300">
+                                <div class="text-sm text-gray-900 dark:text-gray-100 font-medium">
                                     Showing 
-                                    <span class="font-semibold">{{ $videos->firstItem() }}</span>
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ $videos->firstItem() }}</span>
                                     to
-                                    <span class="font-semibold">{{ $videos->lastItem() }}</span>
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ $videos->lastItem() }}</span>
                                     of
-                                    <span class="font-semibold">{{ $videos->total() }}</span>
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ $videos->total() }}</span>
                                     videos
                                 </div>
 
@@ -175,39 +175,39 @@
                                 <div class="flex items-center gap-2">
                                     {{-- Previous Button --}}
                                     @if ($videos->onFirstPage())
-                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-not-allowed">
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg cursor-not-allowed">
                                             Previous
                                         </span>
                                     @else
-                                        <button wire:click="previousPage" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <button wire:click="previousPage" class="px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all">
                                             Previous
                                         </button>
                                     @endif
 
                                     {{-- Page Numbers --}}
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-1.5">
                                         @foreach ($videos->getUrlRange(1, $videos->lastPage()) as $page => $url)
                                             @if ($page == $videos->currentPage())
-                                                <span class="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg">
+                                                <span class="px-4 py-2 text-sm font-bold text-white bg-primary-600 dark:bg-primary-500 rounded-lg shadow-sm">
                                                     {{ $page }}
                                                 </span>
                                             @elseif ($page == 1 || $page == $videos->lastPage() || abs($page - $videos->currentPage()) <= 2)
-                                                <button wire:click="gotoPage({{ $page }})" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                                <button wire:click="gotoPage({{ $page }})" class="px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all">
                                                     {{ $page }}
                                                 </button>
                                             @elseif (abs($page - $videos->currentPage()) == 3)
-                                                <span class="px-2 py-2 text-gray-500 dark:text-gray-400">...</span>
+                                                <span class="px-2 py-2 text-sm font-bold text-gray-500 dark:text-gray-400">...</span>
                                             @endif
                                         @endforeach
                                     </div>
 
                                     {{-- Next Button --}}
                                     @if ($videos->hasMorePages())
-                                        <button wire:click="nextPage" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <button wire:click="nextPage" class="px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all">
                                             Next
                                         </button>
                                     @else
-                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-not-allowed">
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg cursor-not-allowed">
                                             Next
                                         </span>
                                     @endif
