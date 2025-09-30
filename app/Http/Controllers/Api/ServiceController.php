@@ -21,17 +21,6 @@ class ServiceController extends Controller
         // Ambil data level validasi default
         $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
         $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
-        // make the cache into 1 hours
-        $relatedVideos = Cache::remember("related_videos_{$videoCode}", 3600, function() use ($video) {
-            return Video::select('id', 'video_code', 'title')
-                ->when($video, function($query) use ($video) {
-                    $query->where('id', '!=', $video->id);
-                })
-                ->where('is_active', true)
-                ->inRandomOrder()
-                ->take(15)
-                ->get();
-        });
 
         return response()->json([
             'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
@@ -42,7 +31,22 @@ class ServiceController extends Controller
             'is_available' => (bool) $video,
             'is_active' => $video ? (bool) $video->is_active : false,
             'video_title' => $video ? $video->title : null,
-            'related_videos' => $relatedVideos,
+        ]);
+    }
+
+    public function getRelatedVideos()
+    {
+        // make the cache into 1 hours
+        $relatedVideos = Cache::remember("related_videos", 3600, function()  {
+            return Video::select('id', 'video_code', 'title')
+                ->where('is_active', true)
+                ->inRandomOrder()
+                ->take(4)
+                ->get();
+        });
+
+        return response()->json([
+            'related_videos' => $relatedVideos
         ]);
     }
 
