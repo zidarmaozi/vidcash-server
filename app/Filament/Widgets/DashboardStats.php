@@ -75,6 +75,14 @@ class DashboardStats extends BaseWidget
                 ->description('Video yang belum pernah dilihat')
                 ->icon('heroicon-o-eye-slash')
                 ->color('gray'),
+            Stat::make('Video dengan Thumbnail', Video::whereNotNull('thumbnail_path')->count())
+                ->description('Video yang memiliki thumbnail')
+                ->icon('heroicon-o-photo')
+                ->color('success'),
+            Stat::make('Video Tanpa Thumbnail', Video::whereNull('thumbnail_path')->count())
+                ->description('Video yang belum memiliki thumbnail')
+                ->icon('heroicon-o-x-circle')
+                ->color('gray'),
             Stat::make('💸 Financial Overview', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
                 ->description("Pendapatan: Rp" . number_format($totalStoredIncome, 0, ',', '.') . " | Dibayar: Rp" . number_format($totalPaidOut, 0, ',', '.') . " | Saldo: Rp" . number_format($totalUserBalances, 0, ',', '.'))
                 ->icon('heroicon-o-banknotes')
