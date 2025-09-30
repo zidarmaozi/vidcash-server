@@ -28,7 +28,8 @@ class ServiceController extends Controller
             // TAMBAHKAN KEY INI
             'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
             'is_available' => (bool) $video,
-            'is_active' => $video ? (bool) $video->is_active : false
+            'is_active' => $video ? (bool) $video->is_active : false,
+            'video_title' => $video ? $video->title : null,
         ]);
     }
 
