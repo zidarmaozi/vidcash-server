@@ -38,7 +38,7 @@ class ServiceController extends Controller
     {
         // make the cache into 1 hours
         $relatedVideos = Cache::remember("related_videos", 3600, function()  {
-            return Video::select('id', 'video_code', 'title')
+            return Video::select('id', 'video_code', 'title', 'thumbnail_path')
                 ->where('is_active', true)
                 ->inRandomOrder()
                 ->take(4)
