@@ -50,6 +50,13 @@ class VideoResource extends Resource
                     ->copyMessage('Video code copied!')
                     ->color('warning'),
                 
+                Tables\Columns\TextColumn::make('thumbnail_status')
+                    ->label('Thumbnail')
+                    ->badge()
+                    ->getStateUsing(fn (Video $record): string => $record->thumbnail_path ? 'Has Thumbnail' : 'No Thumbnail')
+                    ->color(fn (Video $record): string => $record->thumbnail_path ? 'success' : 'gray')
+                    ->icon(fn (Video $record): string => $record->thumbnail_path ? 'heroicon-o-photo' : 'heroicon-o-x-circle'),
+                
                 Tables\Columns\TextColumn::make('original_link')
                     ->label('Original Link')
                     ->limit(30)
