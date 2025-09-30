@@ -16,6 +16,7 @@ class Video extends Model
         'video_code',
         'validation_level',
         'is_active',
+        'thumbnail_path'
     ];
 
      /**
@@ -24,7 +25,7 @@ class Video extends Model
      * @var array
      */
     // Baris ini memberitahu Laravel untuk selalu menyertakan 'generated_link'
-    protected $appends = ['generated_link'];
+    protected $appends = ['generated_link', 'thumbnail_url'];
 
     /**
      * Fungsi ini adalah "atribut virtual" yang membuat link secara dinamis.
@@ -33,6 +34,17 @@ class Video extends Model
     {
         $domain = Setting::where('key', 'video_domain')->first()?->value ?? 'videy.in';
         return 'https://' . $domain . '?id=' . $this->video_code;
+    }
+
+    /**
+     * Fungsi ini adalah "atribut virtual" yang membuat link thumbnail secara dinamis.
+     */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if ($this->thumbnail_path) {
+            return asset('storage/' . $this->thumbnail_path);
+        }
+        return null;
     }
 
     /**
