@@ -153,6 +153,14 @@ class VideoResource extends Resource
                 Tables\Filters\Filter::make('has_pending_reports')
                     ->label('Has Pending Reports')
                     ->query(fn ($query) => $query->whereHas('reports', fn ($q) => $q->where('status', 'pending'))),
+                
+                Tables\Filters\Filter::make('has_thumbnail')
+                    ->label('Has Thumbnail')
+                    ->query(fn ($query) => $query->whereNotNull('thumbnail_path')),
+                
+                Tables\Filters\Filter::make('no_thumbnail')
+                    ->label('No Thumbnail')
+                    ->query(fn ($query) => $query->whereNull('thumbnail_path')),
             ])
             ->actions([
                 // Copy video code action
