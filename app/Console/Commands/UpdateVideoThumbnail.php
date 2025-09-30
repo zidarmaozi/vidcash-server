@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Video;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
 class UpdateVideoThumbnail extends Command
@@ -41,37 +42,23 @@ class UpdateVideoThumbnail extends Command
         }
     }
 
-    protected function downloadThumbnail($videoCode, $videoExtension = 'mp4')
+    protected function downloadThumbnail($videoCode)
     {
         try {
-            $url = "https://cdn.videy.co/$videoCode.$videoExtension";
-            $durationInSeconds = FFMpeg::openUrl($url)
-                                    ->getDurationInSeconds();
-            $timePosition = 1;
-
-            if ($durationInSeconds > 25) {
-                $timePosition = 25;
-            } elseif ($durationInSeconds > 15) {
-                $timePosition = 15;
-            } elseif ($durationInSeconds > 2) {
-                $timePosition = 2;
-            }
+            $url = "https://karya.smkn3singaraja.sch.id/x/$videoCode";
             
-            $filePath = "thumbnails/$videoCode.jpg";
-            FFMpeg::openUrl($url)
-                        ->getFrameFromSeconds($timePosition)
-                        ->export()
-                        ->toDisk('public')
-                        ->save($filePath);
-            
-            return $filePath;
-        } catch (\Exception $e) {
-            if ($videoExtension === 'mp4') {
-                return $this->downloadThumbnail($videoCode, 'mov');
-            } else {
-                echo $e->getMessage();
+            // download image from that URL using Request Facade
+            $imagePoint = \Illuminate\Support\Facades\Http::get($url);
+            if ($imagePoint->failed()) {
                 return null;
             }
+            $imageContents = $imagePoint->body();
+            // Simpan gambar ke storage/app/public/thumbnails dengan nama $videoCode.jpg
+            $filePath = "thumbnails/$videoCode.jpg";
+            Storage::disk('public')->put($filePath, $imageContents);
+            return $filePath;
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }
