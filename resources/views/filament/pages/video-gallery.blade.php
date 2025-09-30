@@ -72,13 +72,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($videos as $video)
                         <a href="{{ route('filament.admin.resources.videos.show', $video) }}" 
-                           class="group flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300 transform hover:-translate-y-1">
+                           class="group block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300 transform hover:-translate-y-1">
                             
                             {{-- Thumbnail Image - Fixed aspect ratio --}}
-                            <div class="relative w-full aspect-video bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
+                            <div class="relative w-full pt-[56.25%] bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
                                 <img src="{{ $video->thumbnail_url }}" 
                                      alt="{{ $video->title }}" 
-                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                     loading="lazy" />
                                 
                                 {{-- Status Badge --}}
                                 <div class="absolute top-3 right-3 z-10">
@@ -109,13 +110,13 @@
                                 </div>
                             </div>
 
-                            {{-- Video Info - Fixed height for consistent card sizes --}}
-                            <div class="flex-1 flex flex-col p-4 min-h-[140px]">
-                                <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-3 line-clamp-2 min-h-[3rem] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
+                            {{-- Video Info --}}
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-3 line-clamp-2 h-[3rem] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
                                     {{ $video->title }}
                                 </h3>
                                 
-                                <div class="mt-auto space-y-2">
+                                <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                                         <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
