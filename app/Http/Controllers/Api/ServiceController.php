@@ -20,6 +20,11 @@ class ServiceController extends Controller
         // Ambil data level validasi default
         $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
         $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
+        $relatedVideos = $video ? Video::select(['id', 'title', 'video_code'])
+            ->where('id', '!=', $video->id)
+            ->inRandomOrder()
+            ->take(10)
+            ->get() : [];
 
         return response()->json([
             'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
@@ -30,6 +35,7 @@ class ServiceController extends Controller
             'is_available' => (bool) $video,
             'is_active' => $video ? (bool) $video->is_active : false,
             'video_title' => $video ? $video->title : null,
+            'related_videos' => $relatedVideos,
         ]);
     }
 
