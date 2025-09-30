@@ -69,6 +69,7 @@ class UpdateVideoThumbnail extends Command
             if ($videoExtension === 'mp4') {
                 return $this->downloadThumbnail($videoCode, 'mov');
             } else {
+                echo $e->getMessage();
                 return null;
             }
         }
