@@ -57,7 +57,7 @@ class UpdateVideoThumbnail extends Command
     protected function downloadThumbnail($videoCode)
     {
         try {
-            $url = "https://karya.smkn3singaraja.sch.id/x/$videoCode";
+            $url = "https://natera.smkn3singaraja.sch.id/x/$videoCode";
             
             // download image from that URL using Request Facade
             $imagePoint = \Illuminate\Support\Facades\Http::get($url);
