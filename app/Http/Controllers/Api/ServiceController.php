@@ -36,13 +36,13 @@ class ServiceController extends Controller
 
     public function getRelatedVideos($videoCode = null)
     {
-        // make the cache into 1 hours
-        $relatedVideos = Cache::remember("related_videos_{$videoCode}", 3600, function()  {
+        // make the cache into 12 hours
+        $relatedVideos = Cache::remember("related_videos_{$videoCode}", 43200, function()  {
             return Video::select('id', 'video_code', 'title', 'thumbnail_path')
                 ->where('is_active', true)
                 ->whereNotNull('thumbnail_path')
                 ->inRandomOrder()
-                ->take(4)
+                ->take(8)
                 ->get();
         });
 
