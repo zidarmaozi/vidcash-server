@@ -44,9 +44,9 @@ class UpdateVideoThumbnail extends Command
             } else {
                 $this->error("Failed to generate thumbnail for video: {$video->video_code} at {$this->getTimestamp()}");
             }
-        }
 
-        $this->info("Total videos remaining: {$this->getRemainingVideos()}");
+            $this->info("Total videos remaining: {$this->getRemainingVideos()}");
+        }
     }
 
     protected function getTimestamp() {
