@@ -27,7 +27,7 @@ class VideoGallery extends Page implements HasForms
         'status' => 'all',
     ];
 
-    public int $perPage = 12;
+    public int $perPage = 50;
 
     public function mount(): void
     {
