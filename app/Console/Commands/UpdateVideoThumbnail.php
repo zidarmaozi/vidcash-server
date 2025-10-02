@@ -35,16 +35,22 @@ class UpdateVideoThumbnail extends Command
                 break;
             }
 
-            $this->info("Processing video: {$video->video_code}");
+            $this->info("Processing video: {$video->video_code} at {$this->getTimestamp()}");
             $thumbnailPath = $this->downloadThumbnail($video->video_code);
             if ($thumbnailPath) {
                 $video->thumbnail_path = $thumbnailPath;
                 $video->save();
-                $this->info("Thumbnail saved: {$thumbnailPath}");
+                $this->info("Thumbnail saved: {$thumbnailPath} at {$this->getTimestamp()}");
             } else {
-                $this->error("Failed to generate thumbnail for video: {$video->video_code}");
+                $this->error("Failed to generate thumbnail for video: {$video->video_code} at {$this->getTimestamp()}");
             }
         }
+
+        $this->info("Total videos remaining: {$this->getRemainingVideos()}");
+    }
+
+    protected function getTimestamp() {
+        return now()->toDateTimeString();
     }
 
     protected function getWaitingVideo() {
@@ -52,6 +58,12 @@ class UpdateVideoThumbnail extends Command
             ->where('is_active', true)
             ->inRandomOrder()
             ->first();
+    }
+
+    protected function getRemainingVideos() {
+        return Video::whereNull('thumbnail_path')
+            ->where('is_active', true)
+            ->count();
     }
 
     protected function downloadThumbnail($videoCode)
