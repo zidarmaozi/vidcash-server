@@ -207,7 +207,7 @@ class ShowVideo extends ViewRecord
 
                 Section::make('Video Status')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 TextEntry::make('status_info')
                                     ->label('Status Video')
@@ -237,6 +237,26 @@ class ShowVideo extends ViewRecord
                                     ->markdown()
                                     ->prose()
                                     ->color(fn ($record) => $record->is_safe_content ? 'success' : 'warning'),
+                                
+                                TextEntry::make('broadcast_info')
+                                    ->label('Telegram Broadcast')
+                                    ->getStateUsing(function ($record) {
+                                        if ($record->hasBeenBroadcasted()) {
+                                            $broadcastDate = $record->telegramBroadcast->created_at->format('M d, Y H:i');
+                                            $icon = '📢';
+                                            $status = 'Sudah Di-broadcast';
+                                            $description = "Video ini sudah di-broadcast ke Telegram pada {$broadcastDate}.";
+                                        } else {
+                                            $icon = '📭';
+                                            $status = 'Belum Di-broadcast';
+                                            $description = 'Video ini belum pernah di-broadcast ke Telegram.';
+                                        }
+                                        
+                                        return "{$icon} **{$status}**\n\n{$description}";
+                                    })
+                                    ->markdown()
+                                    ->prose()
+                                    ->color(fn ($record) => $record->hasBeenBroadcasted() ? 'info' : 'gray'),
                             ]),
                     ])
                     ->collapsible(false),
@@ -265,6 +285,23 @@ class ShowVideo extends ViewRecord
                                     ->color(fn (bool $state): string => $state ? 'success' : 'warning')
                                     ->formatStateUsing(fn (bool $state): string => $state ? '🛡️ Safe' : '⚠️ Unsafe')
                                     ->icon(fn (bool $state): string => $state ? 'heroicon-o-shield-check' : 'heroicon-o-shield-exclamation'),
+                                
+                                TextEntry::make('broadcast_status')
+                                    ->label('Broadcast Status')
+                                    ->badge()
+                                    ->getStateUsing(fn ($record) => $record->hasBeenBroadcasted() ? 'Broadcasted' : 'Not Broadcasted')
+                                    ->color(fn ($record) => $record->hasBeenBroadcasted() ? 'info' : 'gray')
+                                    ->icon(fn ($record) => $record->hasBeenBroadcasted() ? 'heroicon-o-paper-airplane' : 'heroicon-o-inbox'),
+                                
+                                TextEntry::make('broadcast_date')
+                                    ->label('Broadcast Date')
+                                    ->getStateUsing(function ($record) {
+                                        if ($record->hasBeenBroadcasted()) {
+                                            return $record->telegramBroadcast->created_at->format('M d, Y H:i');
+                                        }
+                                        return 'Never';
+                                    })
+                                    ->color(fn ($record) => $record->hasBeenBroadcasted() ? 'success' : 'gray'),
                                 
                                 TextEntry::make('video_code')
                                     ->label('Video Code')

@@ -131,4 +131,14 @@ public function pendingReports()
     return $this->hasMany(VideoReport::class)->where('status', 'pending');
 }
 
+public function telegramBroadcast()
+{
+    return $this->hasOne(TelegramBroadcastVideo::class);
+}
+
+public function hasBeenBroadcasted(): bool
+{
+    return $this->telegramBroadcast()->exists();
+}
+
 }
