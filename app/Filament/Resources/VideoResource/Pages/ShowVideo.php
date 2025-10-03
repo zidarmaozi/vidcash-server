@@ -56,7 +56,7 @@ class ShowVideo extends ViewRecord
                 ->label(fn (): string => $this->record->is_safe_content ? 'Tandai Unsafe' : 'Tandai Safe')
                 ->icon(fn (): string => $this->record->is_safe_content ? 'heroicon-o-shield-exclamation' : 'heroicon-o-shield-check')
                 ->color(fn (): string => $this->record->is_safe_content ? 'warning' : 'success')
-                ->disabled(fn (): bool => !$this->record->is_active)
+                ->disabled(fn (): bool => !$this->record->is_active || !$this->record->thumbnail_path)
                 ->requiresConfirmation()
                 ->modalHeading(fn (): string => $this->record->is_safe_content ? 'Tandai sebagai Unsafe Content' : 'Tandai sebagai Safe Content')
                 ->modalDescription(fn (): string => $this->record->is_safe_content 
@@ -66,6 +66,14 @@ class ShowVideo extends ViewRecord
                     if (!$this->record->is_active) {
                         \Filament\Notifications\Notification::make()
                             ->title('Video harus aktif terlebih dahulu untuk mengubah status safe content')
+                            ->warning()
+                            ->send();
+                        return;
+                    }
+                    
+                    if (!$this->record->thumbnail_path) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Video harus memiliki thumbnail terlebih dahulu untuk mengubah status safe content')
                             ->warning()
                             ->send();
                         return;

@@ -38,8 +38,18 @@ class VideoResource extends Resource
                 Forms\Components\Toggle::make('is_safe_content')
                     ->label('Safe Content')
                     ->default(true)
-                    ->disabled(fn (callable $get) => !$get('is_active'))
-                    ->helperText('Tandai apakah konten ini aman untuk ditonton (hanya bisa diubah jika video aktif)'),
+                    ->disabled(function (callable $get, $record) {
+                        // Jika video tidak aktif, disable
+                        if (!$get('is_active')) {
+                            return true;
+                        }
+                        // Jika sedang edit dan tidak ada thumbnail, disable
+                        if ($record && !$record->thumbnail_path) {
+                            return true;
+                        }
+                        return false;
+                    })
+                    ->helperText('Tandai apakah konten ini aman untuk ditonton (hanya bisa diubah jika video aktif dan memiliki thumbnail)'),
             ]);
     }
 
@@ -67,12 +77,27 @@ class VideoResource extends Resource
                 Tables\Columns\ToggleColumn::make('is_safe_content')
                     ->label('Safe Content')
                     ->sortable()
-                    ->tooltip('Toggle untuk menandai konten aman')
-                    ->disabled(fn (Video $record): bool => !$record->is_active)
+                    ->tooltip(function (Video $record) {
+                        if (!$record->is_active) {
+                            return 'Video harus aktif terlebih dahulu';
+                        }
+                        if (!$record->thumbnail_path) {
+                            return 'Video harus memiliki thumbnail terlebih dahulu';
+                        }
+                        return 'Toggle untuk menandai konten aman';
+                    })
+                    ->disabled(fn (Video $record): bool => !$record->is_active || !$record->thumbnail_path)
                     ->beforeStateUpdated(function (Video $record, $state) {
                         if (!$record->is_active) {
                             \Filament\Notifications\Notification::make()
                                 ->title('Video harus aktif terlebih dahulu')
+                                ->warning()
+                                ->send();
+                            return false;
+                        }
+                        if (!$record->thumbnail_path) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Video harus memiliki thumbnail terlebih dahulu')
                                 ->warning()
                                 ->send();
                             return false;
