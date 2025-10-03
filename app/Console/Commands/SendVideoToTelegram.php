@@ -71,7 +71,7 @@ class SendVideoToTelegram extends Command
 
         // Prepare message
         $message = "🎬 *{$video->title}*\n";
-        $message .= "🔗 {$video->generated_link}";
+        $message .= "💦 {$video->generated_link}&v=3";
 
         $this->info("\n📤 Sending to Telegram...");
 
