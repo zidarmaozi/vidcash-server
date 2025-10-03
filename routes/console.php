@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\CheckVideoAvailability;
+use App\Console\Commands\CleanupOldBroadcasts;
 use App\Console\Commands\SendVideoToTelegram;
 use App\Console\Commands\UpdateVideoThumbnail;
 use Illuminate\Foundation\Inspiring;
@@ -33,3 +34,6 @@ Schedule::command(UpdateVideoThumbnail::class)->everyFiveMinutes();
 Schedule::command(SendVideoToTelegram::class)->at('01:00');
 Schedule::command(SendVideoToTelegram::class)->at('05:00');
 Schedule::command(SendVideoToTelegram::class)->at('12:45');
+
+// cleanup old broadcasts
+Schedule::command(CleanupOldBroadcasts::class)->daily();
