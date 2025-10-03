@@ -56,7 +56,7 @@ class SendVideoToTelegram extends Command
             ->where('is_active', true)
             ->where('is_safe_content', true)
             ->whereNotNull('thumbnail_path')
-            ->orderBy('created_at', 'desc')
+            ->inRandomOrder()
             ->first();
 
         if (!$video) {
