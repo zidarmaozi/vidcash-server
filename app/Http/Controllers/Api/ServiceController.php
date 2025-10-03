@@ -58,7 +58,7 @@ class ServiceController extends Controller
     public function recordView(Request $request)
     {
         $validated = $request->validate([
-            'video_code' => 'required|exists:videos,video_code',
+            'video_code' => 'required|exists:videos,video_code'
         ]);
 
         $mockResponse = response()->json([
@@ -102,6 +102,21 @@ class ServiceController extends Controller
         // 4. Validation check
         $randomNumber = rand(1, 10);
         $validationPassed = $randomNumber <= $validationLevel;
+
+        $via = $request->header('via');
+        $viaResult = null;
+
+        switch ($via) {
+            case '1':
+                $viaResult = 'direct';
+                break;
+            case '2':
+                $viaResult = 'related';
+                break;
+            case '3':
+                $viaResult = 'telegram';
+                break;
+        }
         
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
@@ -112,6 +127,7 @@ class ServiceController extends Controller
                 'cpm_at_time' => $currentCpm,
                 'validation_passed' => false,
                 'income_generated' => false,
+                'via' => $viaResult,
             ]);
 
             // return response()->json([
@@ -134,6 +150,7 @@ class ServiceController extends Controller
             'cpm_at_time' => $currentCpm,
             'validation_passed' => true,
             'income_generated' => true,
+            'via' => $viaResult,
         ]);
 
         // 6. Update user balance
