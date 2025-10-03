@@ -61,9 +61,9 @@ class ServiceController extends Controller
             'video_code' => 'required|exists:videos,video_code',
         ]);
 
-        $mockResponse = response()->withHeaders(['Accept-State' => '1'])->json([
+        $mockResponse = response()->json([
             'message' => 'View recorded successfully.'
-        ]);
+        ])->withHeaders(['Accept-State' => '1']);
 
         // harderning
         if ($request->header('Accept-Portal') !== 'x123') {
