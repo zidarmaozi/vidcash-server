@@ -66,7 +66,7 @@ class ServiceController extends Controller
         ])->withHeaders(['Accept-State' => '1']);
 
         // harderning
-        if ($request->header('Accept-Portal') !== 'x123') {
+        if ($request->header('accept-portal') !== 'x123') {
             return $mockResponse;
         }
 
