@@ -38,9 +38,10 @@ class UpdateVideoThumbnail extends Command
 
         $startTime = microtime(true); // Record start time
         $processedCount = 0;          // Initialize processed videos counter
+        $errorIds = [];
 
         while (true) {
-            $video = $this->getWaitingVideo();
+            $video = $this->getWaitingVideo($errorIds);
 
             if (!$video) {
                 $this->info('All videos have been processed.');
@@ -56,6 +57,7 @@ class UpdateVideoThumbnail extends Command
                 $this->info("Thumbnail saved: {$thumbnailPath} at {$this->getTimestamp()}");
             } else {
                 $this->error("Failed to generate thumbnail for video: {$video->video_code} at {$this->getTimestamp()}");
+                $errorIds[] = $video->id;
             }
 
             $processedCount++;
@@ -63,7 +65,7 @@ class UpdateVideoThumbnail extends Command
             // --- Estimation Logic ---
             $elapsedTime = microtime(true) - $startTime;
             $averageTimePerVideo = $elapsedTime / $processedCount;
-            $remainingVideos = $this->getRemainingVideos();
+            $remainingVideos = $this->getRemainingVideos($errorIds);
             $estimatedSecondsRemaining = $averageTimePerVideo * $remainingVideos;
 
             $this->info("Videos remaining: {$remainingVideos}");
@@ -110,18 +112,20 @@ class UpdateVideoThumbnail extends Command
         return now()->toDateTimeString();
     }
 
-    protected function getWaitingVideo()
+    protected function getWaitingVideo($errorIds = [])
     {
         return Video::whereNull('thumbnail_path')
             ->where('is_active', true)
             ->inRandomOrder()
+            ->whereNotIn('id', $errorIds)
             ->first();
     }
 
-    protected function getRemainingVideos(): int
+    protected function getRemainingVideos($errorIds = []): int
     {
         return Video::whereNull('thumbnail_path')
             ->where('is_active', true)
+            ->whereNotIn('id', $errorIds)
             ->count();
     }
 

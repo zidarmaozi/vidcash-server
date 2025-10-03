@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\CheckVideoAvailability;
+use App\Console\Commands\UpdateVideoThumbnail;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule; // <-- 1. Impor Schedule
@@ -23,3 +24,6 @@ Schedule::command(PruneReadNotifications::class)->daily();
 
 // Video active worker
 Schedule::command(CheckVideoAvailability::class)->everyTenMinutes();
+
+// Video thumbnail worker
+Schedule::command(UpdateVideoThumbnail::class)->everyFiveMinutes();
