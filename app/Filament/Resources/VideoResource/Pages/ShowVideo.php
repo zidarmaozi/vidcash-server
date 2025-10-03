@@ -25,14 +25,57 @@ class ShowVideo extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading(fn (): string => $this->record->is_active ? 'Nonaktifkan Video' : 'Aktifkan Video')
                 ->modalDescription(fn (): string => $this->record->is_active 
-                    ? 'Apakah Anda yakin ingin menonaktifkan video ini? Video yang dinonaktifkan tidak akan dapat diakses.' 
+                    ? 'Apakah Anda yakin ingin menonaktifkan video ini? Video yang dinonaktifkan tidak akan dapat diakses dan safe content akan di-set ke false.' 
                     : 'Apakah Anda yakin ingin mengaktifkan video ini? Video yang diaktifkan akan dapat diakses kembali.')
                 ->action(function () {
-                    $this->record->update(['is_active' => !$this->record->is_active]);
+                    $isActivating = !$this->record->is_active;
+                    
+                    if ($isActivating) {
+                        // Jika mengaktifkan video
+                        $this->record->update(['is_active' => true]);
+                    } else {
+                        // Jika menonaktifkan video, set is_safe_content ke false
+                        $this->record->update([
+                            'is_active' => false,
+                            'is_safe_content' => false
+                        ]);
+                    }
                     
                     $status = $this->record->is_active ? 'diaktifkan' : 'dinonaktifkan';
+                    $message = $isActivating 
+                        ? "Video berhasil {$status}" 
+                        : "Video berhasil {$status} dan safe content di-set ke false";
+                    
                     \Filament\Notifications\Notification::make()
-                        ->title("Video berhasil {$status}")
+                        ->title($message)
+                        ->success()
+                        ->send();
+                }),
+            
+            Actions\Action::make('toggleSafeContent')
+                ->label(fn (): string => $this->record->is_safe_content ? 'Tandai Unsafe' : 'Tandai Safe')
+                ->icon(fn (): string => $this->record->is_safe_content ? 'heroicon-o-shield-exclamation' : 'heroicon-o-shield-check')
+                ->color(fn (): string => $this->record->is_safe_content ? 'warning' : 'success')
+                ->disabled(fn (): bool => !$this->record->is_active)
+                ->requiresConfirmation()
+                ->modalHeading(fn (): string => $this->record->is_safe_content ? 'Tandai sebagai Unsafe Content' : 'Tandai sebagai Safe Content')
+                ->modalDescription(fn (): string => $this->record->is_safe_content 
+                    ? 'Apakah Anda yakin ingin menandai video ini sebagai konten tidak aman?' 
+                    : 'Apakah Anda yakin ingin menandai video ini sebagai konten aman?')
+                ->action(function () {
+                    if (!$this->record->is_active) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Video harus aktif terlebih dahulu untuk mengubah status safe content')
+                            ->warning()
+                            ->send();
+                        return;
+                    }
+                    
+                    $this->record->update(['is_safe_content' => !$this->record->is_safe_content]);
+                    
+                    $status = $this->record->is_safe_content ? 'safe content' : 'unsafe content';
+                    \Filament\Notifications\Notification::make()
+                        ->title("Video berhasil ditandai sebagai {$status}")
                         ->success()
                         ->send();
                 }),
@@ -156,7 +199,7 @@ class ShowVideo extends ViewRecord
 
                 Section::make('Video Status')
                     ->schema([
-                        Grid::make(1)
+                        Grid::make(2)
                             ->schema([
                                 TextEntry::make('status_info')
                                     ->label('Status Video')
@@ -171,6 +214,21 @@ class ShowVideo extends ViewRecord
                                     ->markdown()
                                     ->prose()
                                     ->color(fn ($record) => $record->is_active ? 'success' : 'danger'),
+                                
+                                TextEntry::make('safe_content_info')
+                                    ->label('Content Safety')
+                                    ->getStateUsing(function ($record) {
+                                        $status = $record->is_safe_content ? 'Safe Content' : 'Unsafe Content';
+                                        $icon = $record->is_safe_content ? '🛡️' : '⚠️';
+                                        $description = $record->is_safe_content 
+                                            ? 'Video ini ditandai sebagai konten yang aman untuk ditonton.'
+                                            : 'Video ini ditandai sebagai konten yang tidak aman.';
+                                        
+                                        return "{$icon} **{$status}**\n\n{$description}";
+                                    })
+                                    ->markdown()
+                                    ->prose()
+                                    ->color(fn ($record) => $record->is_safe_content ? 'success' : 'warning'),
                             ]),
                     ])
                     ->collapsible(false),
@@ -192,6 +250,13 @@ class ShowVideo extends ViewRecord
                                     ->badge()
                                     ->color(fn (bool $state): string => $state ? 'success' : 'danger')
                                     ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Tidak Aktif'),
+                                
+                                TextEntry::make('is_safe_content')
+                                    ->label('Content Safety')
+                                    ->badge()
+                                    ->color(fn (bool $state): string => $state ? 'success' : 'warning')
+                                    ->formatStateUsing(fn (bool $state): string => $state ? '🛡️ Safe' : '⚠️ Unsafe')
+                                    ->icon(fn (bool $state): string => $state ? 'heroicon-o-shield-check' : 'heroicon-o-shield-exclamation'),
                                 
                                 TextEntry::make('video_code')
                                     ->label('Video Code')

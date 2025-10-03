@@ -27,7 +27,19 @@ class VideoResource extends Resource
                 Forms\Components\Toggle::make('is_active')
                     ->label('Video Aktif')
                     ->default(true)
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        // Jika video dinonaktifkan, set is_safe_content ke false
+                        if (!$state) {
+                            $set('is_safe_content', false);
+                        }
+                    })
                     ->helperText('Aktifkan atau nonaktifkan video ini'),
+                Forms\Components\Toggle::make('is_safe_content')
+                    ->label('Safe Content')
+                    ->default(true)
+                    ->disabled(fn (callable $get) => !$get('is_active'))
+                    ->helperText('Tandai apakah konten ini aman untuk ditonton (hanya bisa diubah jika video aktif)'),
             ]);
     }
 
@@ -35,6 +47,15 @@ class VideoResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('thumbnail_path')
+                    ->label('Thumbnail')
+                    ->disk('public')
+                    ->height(120)
+                    ->width(160)
+                    ->defaultImageUrl('https://via.placeholder.com/160x120/e5e7eb/6b7280?text=No+Thumbnail')
+                    ->extraImgAttributes(['class' => 'rounded-lg object-cover'])
+                    ->tooltip(fn (Video $record) => $record->thumbnail_path ? 'Klik untuk melihat detail' : 'Tidak ada thumbnail')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('title')->label('Judul')->searchable(),
                 Tables\Columns\TextColumn::make('user.name')->label('Pemilik')->searchable(),
                 Tables\Columns\TextColumn::make('is_active')
@@ -43,19 +64,26 @@ class VideoResource extends Resource
                     ->color(fn (bool $state): string => $state ? 'success' : 'danger')
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Tidak Aktif')
                     ->sortable(),
+                Tables\Columns\ToggleColumn::make('is_safe_content')
+                    ->label('Safe Content')
+                    ->sortable()
+                    ->tooltip('Toggle untuk menandai konten aman')
+                    ->disabled(fn (Video $record): bool => !$record->is_active)
+                    ->beforeStateUpdated(function (Video $record, $state) {
+                        if (!$record->is_active) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Video harus aktif terlebih dahulu')
+                                ->warning()
+                                ->send();
+                            return false;
+                        }
+                    }),
                 Tables\Columns\TextColumn::make('video_code')
                     ->label('Video Code')
                     ->searchable()
                     ->copyable()
                     ->copyMessage('Video code copied!')
                     ->color('warning'),
-                
-                Tables\Columns\TextColumn::make('thumbnail_status')
-                    ->label('Thumbnail')
-                    ->badge()
-                    ->getStateUsing(fn (Video $record): string => $record->thumbnail_path ? 'Has Thumbnail' : 'No Thumbnail')
-                    ->color(fn (Video $record): string => $record->thumbnail_path ? 'success' : 'gray')
-                    ->icon(fn (Video $record): string => $record->thumbnail_path ? 'heroicon-o-photo' : 'heroicon-o-x-circle'),
                 
                 Tables\Columns\TextColumn::make('original_link')
                     ->label('Original Link')
@@ -136,6 +164,13 @@ class VideoResource extends Resource
                     ->options([
                         '1' => 'Aktif',
                         '0' => 'Tidak Aktif',
+                    ]),
+                
+                Tables\Filters\SelectFilter::make('is_safe_content')
+                    ->label('Safe Content')
+                    ->options([
+                        '1' => 'Safe',
+                        '0' => 'Unsafe',
                     ]),
                 
                 Tables\Filters\Filter::make('has_views')
@@ -234,14 +269,17 @@ class VideoResource extends Resource
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Nonaktifkan Video Terpilih')
-                        ->modalDescription('Apakah Anda yakin ingin menonaktifkan semua video yang dipilih?')
+                        ->modalDescription('Apakah Anda yakin ingin menonaktifkan semua video yang dipilih? Safe content akan otomatis di-set ke false.')
                         ->action(function (Collection $records) {
                             $records->each(function ($record) {
-                                $record->update(['is_active' => false]);
+                                $record->update([
+                                    'is_active' => false,
+                                    'is_safe_content' => false
+                                ]);
                             });
                             
                             \Filament\Notifications\Notification::make()
-                                ->title('Video berhasil dinonaktifkan')
+                                ->title('Video berhasil dinonaktifkan dan safe content di-set ke false')
                                 ->success()
                                 ->send();
                         }),

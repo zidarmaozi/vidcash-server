@@ -16,6 +16,7 @@ class Video extends Model
         'video_code',
         'validation_level',
         'is_active',
+        'is_safe_content',
         'thumbnail_path'
     ];
 
