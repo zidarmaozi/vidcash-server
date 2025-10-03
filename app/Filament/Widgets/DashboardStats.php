@@ -9,6 +9,7 @@ use App\Models\View;
 use App\Models\Setting;
 use App\Models\TelegramBroadcastVideo;
 use App\Models\VideoReport;
+use App\Services\TelegramService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -91,6 +92,31 @@ class DashboardStats extends BaseWidget
             // Thumbnail stats
             $withThumbnail = Video::whereNotNull('thumbnail_path')->count();
             $withoutThumbnail = Video::whereNull('thumbnail_path')->count();
+            
+            // Telegram channel members count - cache for 30 minutes
+            $channelMembersCount = 0;
+            $channelInfo = 'N/A';
+            $telegramChatId = config('services.telegram.chat_id');
+            
+            if ($telegramChatId) {
+                $channelMembersCount = cache()->remember('telegram_channel_members_count', 1800, function() use ($telegramChatId) {
+                    try {
+                        $telegram = new TelegramService();
+                        $result = $telegram->getChatMembersCount($telegramChatId);
+                        
+                        if ($result['success']) {
+                            return $result['count'];
+                        }
+                        
+                        return 0;
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to get Telegram channel members count: ' . $e->getMessage());
+                        return 0;
+                    }
+                });
+                
+                $channelInfo = $telegramChatId;
+            }
 
         return [
             Stat::make('💰 Total Pendapatan Platform', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -161,6 +187,11 @@ class DashboardStats extends BaseWidget
                 ->description("With: {$withThumbnail} | Without: {$withoutThumbnail}")
                 ->icon($withoutThumbnail > $withThumbnail ? 'heroicon-o-exclamation-circle' : 'heroicon-o-photo')
                 ->color($withoutThumbnail > $withThumbnail ? 'warning' : 'success'),
+            
+            Stat::make('👥 Channel Members', number_format($channelMembersCount))
+                ->description($channelMembersCount > 0 ? "Channel: {$channelInfo}" : 'Telegram channel not configured')
+                ->icon($channelMembersCount > 0 ? 'heroicon-o-user-group' : 'heroicon-o-exclamation-circle')
+                ->color($channelMembersCount > 0 ? 'success' : 'warning'),
         ];
         });
     }

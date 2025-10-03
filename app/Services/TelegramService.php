@@ -259,5 +259,175 @@ class TelegramService
             ];
         }
     }
+
+    /**
+     * Cek apakah user adalah member/participant dari channel/group
+     *
+     * @param string|int $chatId - ID channel/group (bisa string dengan @ atau numeric ID)
+     * @param string|int $userId - ID user Telegram yang akan dicek
+     * @return array
+     */
+    public function checkChannelMembership($chatId, $userId)
+    {
+        try {
+            $response = Http::timeout(30)->get("{$this->apiUrl}/getChatMember", [
+                'chat_id' => $chatId,
+                'user_id' => $userId,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                // Status yang dianggap sebagai member aktif
+                $activeMemberStatuses = ['creator', 'administrator', 'member'];
+                $status = $data['result']['status'] ?? 'left';
+                
+                $isMember = in_array($status, $activeMemberStatuses);
+
+                return [
+                    'success' => true,
+                    'is_member' => $isMember,
+                    'status' => $status,
+                    'data' => $data['result'],
+                    'message' => $isMember ? 'User adalah member channel' : 'User bukan member channel'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'is_member' => false,
+                'error' => $response->json(),
+                'message' => 'Gagal mengecek keanggotaan channel'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Telegram Check Channel Membership Error: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'is_member' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Terjadi kesalahan saat mengecek keanggotaan channel'
+            ];
+        }
+    }
+
+    /**
+     * Cek apakah user adalah member dari multiple channel/group
+     *
+     * @param array $chatIds - Array ID channel/group yang akan dicek
+     * @param string|int $userId - ID user Telegram yang akan dicek
+     * @return array
+     */
+    public function checkMultipleChannelMembership(array $chatIds, $userId)
+    {
+        try {
+            $results = [];
+            $allMember = true;
+
+            foreach ($chatIds as $chatId) {
+                $result = $this->checkChannelMembership($chatId, $userId);
+                $results[$chatId] = $result;
+                
+                if (!$result['is_member']) {
+                    $allMember = false;
+                }
+            }
+
+            return [
+                'success' => true,
+                'is_member_of_all' => $allMember,
+                'results' => $results,
+                'message' => $allMember ? 'User adalah member semua channel' : 'User bukan member beberapa channel'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Telegram Check Multiple Channel Membership Error: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'is_member_of_all' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Terjadi kesalahan saat mengecek keanggotaan multiple channel'
+            ];
+        }
+    }
+
+    /**
+     * Get informasi detail tentang chat/channel/group
+     *
+     * @param string|int $chatId - ID chat/channel/group
+     * @return array
+     */
+    public function getChatInfo($chatId)
+    {
+        try {
+            $response = Http::timeout(30)->get("{$this->apiUrl}/getChat", [
+                'chat_id' => $chatId,
+            ]);
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'data' => $response->json()['result'],
+                    'message' => 'Berhasil mendapatkan info chat'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $response->json(),
+                'message' => 'Gagal mendapatkan info chat'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Telegram Get Chat Info Error: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Terjadi kesalahan saat mendapatkan info chat'
+            ];
+        }
+    }
+
+    /**
+     * Get jumlah member dalam channel/group
+     *
+     * @param string|int $chatId - ID chat/channel/group
+     * @return array
+     */
+    public function getChatMembersCount($chatId)
+    {
+        try {
+            $response = Http::timeout(30)->get("{$this->apiUrl}/getChatMemberCount", [
+                'chat_id' => $chatId,
+            ]);
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'count' => $response->json()['result'],
+                    'message' => 'Berhasil mendapatkan jumlah member'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $response->json(),
+                'message' => 'Gagal mendapatkan jumlah member'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Telegram Get Chat Members Count Error: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Terjadi kesalahan saat mendapatkan jumlah member'
+            ];
+        }
+    }
 }
+
 
