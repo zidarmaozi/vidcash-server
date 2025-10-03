@@ -15,23 +15,28 @@ class ServiceController extends Controller
     // Mengirim pengaturan ke service javascript/halam tonton
     public function getSettings($videoCode = null)
     {
-        $ipLimitSetting = Setting::where('key', 'ip_view_limit')->first();
-        $cpmSetting = Setting::where('key', 'cpm')->first();
-        $watchTimeSetting = Setting::where('key', 'watch_time_seconds')->first();
-        // Ambil data level validasi default
-        $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
-        $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
+        // Cache response selama 10 menit (600 detik)
+        $cacheKey = $videoCode ? "settings_{$videoCode}" : "settings_default";
+        
+        return Cache::remember($cacheKey, 600, function() use ($videoCode) {
+            $ipLimitSetting = Setting::where('key', 'ip_view_limit')->first();
+            $cpmSetting = Setting::where('key', 'cpm')->first();
+            $watchTimeSetting = Setting::where('key', 'watch_time_seconds')->first();
+            // Ambil data level validasi default
+            $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
+            $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
 
-        return response()->json([
-            'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
-            'cpm' => $cpmSetting ? (int) $cpmSetting->value : 10,
-            'watch_time_seconds' => $watchTimeSetting ? (int) $watchTimeSetting->value : 10,
-            // TAMBAHKAN KEY INI
-            'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
-            'is_available' => (bool) $video,
-            'is_active' => $video ? (bool) $video->is_active : false,
-            'video_title' => $video ? $video->title : null,
-        ]);
+            return response()->json([
+                'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
+                'cpm' => $cpmSetting ? (int) $cpmSetting->value : 10,
+                'watch_time_seconds' => $watchTimeSetting ? (int) $watchTimeSetting->value : 10,
+                // TAMBAHKAN KEY INI
+                'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
+                'is_available' => (bool) $video,
+                'is_active' => $video ? (bool) $video->is_active : false,
+                'video_title' => $video ? $video->title : null,
+            ]);
+        });
     }
 
     public function getRelatedVideos($videoCode = null)
