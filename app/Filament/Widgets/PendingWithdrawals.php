@@ -12,6 +12,8 @@ use Filament\Notifications\Notification;
 class PendingWithdrawals extends BaseWidget
 {
     protected static ?string $heading = 'Permintaan Penarikan Tertunda';
+    
+    protected static ?int $sort = 5;
 
     public function table(Table $table): Table
     {

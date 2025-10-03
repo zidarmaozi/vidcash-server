@@ -22,7 +22,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\DashboardStats;
 use App\Filament\Widgets\PendingWithdrawals;
 use App\Filament\Widgets\MonthlyStatsChart;
-use App\Filament\Widgets\FinancialOverview;
+use App\Filament\Widgets\QuickActions;
+use App\Filament\Widgets\TodayHighlights;
+use App\Filament\Widgets\DailyIncomeChart;
 // ===============================================
 
 // Import your custom middleware
@@ -49,13 +51,13 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\UserProfile::class,
                 \App\Filament\Pages\VideoGallery::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
+                QuickActions::class,
+                TodayHighlights::class,
                 DashboardStats::class,
-                FinancialOverview::class,
-                PendingWithdrawals::class,
                 MonthlyStatsChart::class,
+                PendingWithdrawals::class,
+                DailyIncomeChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
