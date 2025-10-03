@@ -13,6 +13,7 @@ class View extends Model
         'cpm_at_time',
         'validation_passed',
         'income_generated',
+        'via',
     ];
 
     protected $casts = [

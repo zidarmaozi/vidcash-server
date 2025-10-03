@@ -25,6 +25,8 @@ use App\Filament\Widgets\MonthlyStatsChart;
 use App\Filament\Widgets\QuickActions;
 use App\Filament\Widgets\TodayHighlights;
 use App\Filament\Widgets\DailyIncomeChart;
+use App\Filament\Widgets\ViewerSourceStats;
+use App\Filament\Widgets\ViewerSourceChart;
 // ===============================================
 
 // Import your custom middleware
@@ -55,6 +57,8 @@ class AdminPanelProvider extends PanelProvider
                 QuickActions::class,
                 TodayHighlights::class,
                 DashboardStats::class,
+                ViewerSourceStats::class,
+                ViewerSourceChart::class,
                 MonthlyStatsChart::class,
                 PendingWithdrawals::class,
                 DailyIncomeChart::class,
