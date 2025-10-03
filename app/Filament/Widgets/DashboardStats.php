@@ -20,18 +20,11 @@ class DashboardStats extends BaseWidget
     {
         // Cache for 5 minutes - balance between freshness & performance
         return cache()->remember('dashboard_stats_main', 300, function() {
-            // Optimize with single query using aggregate
-            $viewStats = View::selectRaw('
-                SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income,
-                COUNT(*) as total_views,
-                SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as validated_views,
-                SUM(CASE WHEN validation_passed = 0 THEN 1 ELSE 0 END) as failed_views
-            ')->first();
-            
-            $totalStoredIncome = $viewStats->total_income ?? 0;
-            $totalViews = $viewStats->total_views ?? 0;
-            $totalValidatedViews = $viewStats->validated_views ?? 0;
-            $totalFailedViews = $viewStats->failed_views ?? 0;
+            // Use Eloquent aggregates for better compatibility
+            $totalStoredIncome = View::where('income_generated', true)->sum('income_amount');
+            $totalViews = View::count();
+            $totalValidatedViews = View::where('validation_passed', true)->count();
+            $totalFailedViews = View::where('validation_passed', false)->count();
             
             // Optimize withdrawal + event payout with single query
             $withdrawalStats = Withdrawal::selectRaw('
@@ -61,22 +54,13 @@ class DashboardStats extends BaseWidget
             // Calculate success rate
             $successRate = $totalViews > 0 ? round(($totalValidatedViews / $totalViews) * 100, 1) : 0;
             
-            // Video stats in single query
-            $videoStats = Video::selectRaw('
-                COUNT(*) as total,
-                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
-                SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive,
-                SUM(CASE WHEN is_safe_content = 1 THEN 1 ELSE 0 END) as safe,
-                SUM(CASE WHEN is_safe_content = 0 THEN 1 ELSE 0 END) as unsafe,
-                SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today
-            ')->first();
-            
-            $activeVideos = $videoStats->active ?? 0;
-            $inactiveVideos = $videoStats->inactive ?? 0;
-            $safeVideos = $videoStats->safe ?? 0;
-            $unsafeVideos = $videoStats->unsafe ?? 0;
-            $todayVideos = $videoStats->today ?? 0;
-            $totalVideos = $videoStats->total ?? 0;
+            // Video stats using Eloquent for compatibility
+            $activeVideos = Video::where('is_active', true)->count();
+            $inactiveVideos = Video::where('is_active', false)->count();
+            $safeVideos = Video::where('is_safe_content', true)->count();
+            $unsafeVideos = Video::where('is_safe_content', false)->count();
+            $todayVideos = Video::whereDate('created_at', today())->count();
+            $totalVideos = Video::count();
             
             // Withdrawal stats - single query
             $withdrawalAllStats = Withdrawal::selectRaw('
