@@ -98,13 +98,10 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
-                Action::make('view_profile')
-                    ->label('View Profile')
-                    ->icon('heroicon-o-user')
-                    ->url(fn ($record) => route('filament.admin.pages.user-profile') . '?user_id=' . $record->id)
-                    ->openUrlInNewTab()
-                    ->color('info'),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Detail'),
+                Tables\Actions\EditAction::make()
+                    ->label('Edit'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -125,7 +122,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
-            'show' => Pages\ShowUser::route('/{record}'),
+            'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }

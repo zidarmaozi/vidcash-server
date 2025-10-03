@@ -4,10 +4,7 @@ namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use Filament\Actions\Action;
-use App\Filament\Widgets\UserStatsOverview;
-use App\Filament\Widgets\UserVideosTable;
-use App\Filament\Widgets\UserEarningsChart;
-use App\Filament\Widgets\UserViewsChart;
+use App\Filament\Resources\UserResource\Widgets\UserStatsWidget;
 use App\Models\User;
 
 class UserProfile extends Page
@@ -17,6 +14,9 @@ class UserProfile extends Page
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
     protected static ?string $title = 'User Profile';
+    
+    // Hide from navigation - use ViewUser instead
+    protected static bool $shouldRegisterNavigation = false;
 
     public $record;
 
@@ -45,34 +45,31 @@ class UserProfile extends Page
         }
         
         return [
+            Action::make('view_user_detail')
+                ->label('Lihat Detail Lengkap')
+                ->icon('heroicon-o-eye')
+                ->url(fn () => route('filament.admin.resources.users.view', $this->record))
+                ->color('info'),
+                
             Action::make('edit')
                 ->label('Edit User')
                 ->icon('heroicon-o-pencil')
                 ->url(fn () => route('filament.admin.resources.users.edit', $this->record))
                 ->color('primary'),
-            
-            Action::make('view_videos')
-                ->label('View All Videos')
-                ->icon('heroicon-o-video-camera')
-                ->url(fn () => route('filament.admin.resources.videos.index', ['tableFilters[user][value]' => $this->record->id]))
-                ->color('info')
-                ->openUrlInNewTab(),
         ];
     }
 
     protected function getHeaderWidgets(): array
     {
         return [
-            UserStatsOverview::class,
+            UserStatsWidget::class,
         ];
     }
 
     protected function getFooterWidgets(): array
     {
         return [
-            UserVideosTable::class,
-            UserEarningsChart::class,
-            UserViewsChart::class,
+            // Add footer widgets here if needed
         ];
     }
 
