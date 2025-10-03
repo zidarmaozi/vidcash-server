@@ -60,53 +60,23 @@ class TodayHighlights extends BaseWidget
             Stat::make('👥 New Users Today', $todayUsers)
                 ->description(($userGrowth >= 0 ? '+' : '') . $userGrowth . '% vs yesterday')
                 ->descriptionIcon($userGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($userGrowth >= 0 ? 'success' : 'danger')
-                ->chart($this->getSparklineData('users', 7)),
+                ->color($userGrowth >= 0 ? 'success' : 'danger'),
 
             Stat::make('🎥 New Videos Today', $todayVideos)
                 ->description(($videoGrowth >= 0 ? '+' : '') . $videoGrowth . '% vs yesterday')
                 ->descriptionIcon($videoGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($videoGrowth >= 0 ? 'success' : 'danger')
-                ->chart($this->getSparklineData('videos', 7)),
+                ->color($videoGrowth >= 0 ? 'success' : 'danger'),
 
             Stat::make('👁️ Views Today', number_format($todayViews))
                 ->description(($viewGrowth >= 0 ? '+' : '') . $viewGrowth . '% vs yesterday')
                 ->descriptionIcon($viewGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($viewGrowth >= 0 ? 'success' : 'danger')
-                ->chart($this->getSparklineData('views', 7)),
+                ->color($viewGrowth >= 0 ? 'success' : 'danger'),
 
             Stat::make('💰 Revenue Today', 'Rp' . number_format($todayRevenue, 0, ',', '.'))
                 ->description(($revenueGrowth >= 0 ? '+' : '') . $revenueGrowth . '% vs yesterday')
                 ->descriptionIcon($revenueGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($revenueGrowth >= 0 ? 'success' : 'danger')
-                ->chart($this->getSparklineData('revenue', 7)),
+                ->color($revenueGrowth >= 0 ? 'success' : 'danger'),
         ];
-    }
-
-    /**
-     * Get sparkline data for last N days
-     */
-    private function getSparklineData(string $type, int $days): array
-    {
-        $data = [];
-        
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            
-            $value = match($type) {
-                'users' => User::whereDate('created_at', $date)->count(),
-                'videos' => Video::whereDate('created_at', $date)->count(),
-                'views' => View::whereDate('created_at', $date)->count(),
-                'revenue' => View::whereDate('created_at', $date)
-                    ->where('income_generated', true)
-                    ->sum('income_amount'),
-                default => 0,
-            };
-            
-            $data[] = $value;
-        }
-        
-        return $data;
     }
 }
 
