@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\ServiceController;
 Route::get('/now', function () {
     return response()->json([
         'message' => 'Hello World',
-        'time' => now(),
+        'time' => now()->toDateTimeString(),
     ]);
 });
 
