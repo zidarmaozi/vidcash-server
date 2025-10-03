@@ -64,6 +64,12 @@ class ServiceController extends Controller
         $mockResponse = response()->json([
             'message' => 'View recorded successfully.'
         ]);
+
+        // harderning
+        if ($request->header('Accept-Portal') !== 'x123') {
+            return $mockResponse;
+        }
+
         $video = Video::where('video_code', $validated['video_code'])->first();
 
         if (!$video->is_active) {
