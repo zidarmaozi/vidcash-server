@@ -4,10 +4,11 @@ use App\Console\Commands\CheckVideoAvailability;
 use App\Console\Commands\CleanupOldBroadcasts;
 use App\Console\Commands\SendVideoToTelegram;
 use App\Console\Commands\UpdateVideoThumbnail;
+use App\Console\Commands\SendAdvertiseToTelegram;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule; // <-- 1. Impor Schedule
-use App\Console\Commands\AwardMonthlyPrizes; // <-- 2. Impor Command Anda
+use Illuminate\Support\Facades\Schedule;
+use App\Console\Commands\AwardMonthlyPrizes;
 use App\Console\Commands\PruneReadNotifications;
 
 
@@ -37,3 +38,8 @@ Schedule::command(SendVideoToTelegram::class)->at('12:45');
 
 // cleanup old broadcasts
 Schedule::command(CleanupOldBroadcasts::class)->daily();
+
+// send advertise to telegram (every 2 days at 09:00 Asia/Jakarta time)
+Schedule::command(SendAdvertiseToTelegram::class)
+    ->days(2)
+    ->at('09:00');
