@@ -7,51 +7,70 @@
         @if ($hasActions)
             <div class="space-y-3">
                 @foreach ($actionItems as $item)
-                    <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
-                        <div class="flex items-center space-x-4 flex-1">
-                            <div class="text-3xl">
+                    <div @class([
+                        'flex items-center justify-between p-4 rounded-xl border transition-all duration-200',
+                        'fi-bg-subtle border-gray-950/5 dark:border-white/10',
+                        'hover:bg-gray-950/[.025] dark:hover:bg-white/5'
+                    ])>
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <div class="text-3xl flex-shrink-0">
                                 {{ $item['icon'] }}
                             </div>
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2">
-                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h4 class="text-sm font-semibold fi-color-custom">
                                         {{ $item['title'] }}
                                     </h4>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                        @if($item['priority'] === 'danger') bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300
-                                        @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300
-                                        @endif">
-                                        {{ $item['count'] }}
-                                    </span>
+                                    @if($item['priority'] === 'danger')
+                                        <x-filament::badge color="danger" size="sm">
+                                            {{ $item['count'] }}
+                                        </x-filament::badge>
+                                    @else
+                                        <x-filament::badge color="warning" size="sm">
+                                            {{ $item['count'] }}
+                                        </x-filament::badge>
+                                    @endif
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ $item['description'] }}
                                 </p>
                             </div>
                         </div>
-                        <div>
-                            <a href="{{ $item['url'] }}" 
-                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white transition-colors duration-200
-                                      @if($item['priority'] === 'danger') bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600
-                                      @else bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600
-                                      @endif
-                                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-900">
-                                View
-                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </a>
+                        <div class="flex-shrink-0">
+                            @if($item['priority'] === 'danger')
+                                <x-filament::button
+                                    :href="$item['url']"
+                                    tag="a"
+                                    color="danger"
+                                    size="sm"
+                                    icon="heroicon-o-arrow-right"
+                                    icon-position="after"
+                                >
+                                    View
+                                </x-filament::button>
+                            @else
+                                <x-filament::button
+                                    :href="$item['url']"
+                                    tag="a"
+                                    color="warning"
+                                    size="sm"
+                                    icon="heroicon-o-arrow-right"
+                                    icon-position="after"
+                                >
+                                    View
+                                </x-filament::button>
+                            @endif
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <div class="text-center py-8">
+            <div class="text-center py-12">
                 <div class="text-6xl mb-4">✅</div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 class="text-lg font-semibold fi-header-heading">
                     All Clear!
                 </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     Tidak ada action yang diperlukan saat ini
                 </p>
             </div>
