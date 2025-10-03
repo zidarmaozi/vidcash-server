@@ -103,7 +103,7 @@ class ServiceController extends Controller
         $randomNumber = rand(1, 10);
         $validationPassed = $randomNumber <= $validationLevel;
 
-        $via = $request->header('via');
+        $via = $request->header('x-via');
         $viaResult = null;
 
         switch ($via) {
