@@ -39,11 +39,12 @@ class SendVideoToTelegram extends Command
      */
     public function handle()
     {
-        // Get chat ID from option or env
-        $chatId = $this->option('chat-id') ?: env('TELEGRAM_CHAT_ID');
+        // Get chat ID from option or config
+        $chatId = $this->option('chat-id') ?: config('services.telegram.chat_id');
         
         if (!$chatId) {
-            $this->error('❌ Chat ID is required! Please provide --chat-id option or set TELEGRAM_CHAT_ID in .env');
+            $this->error('❌ Chat ID is required!');
+            $this->info('Please provide --chat-id option or set TELEGRAM_CHAT_ID in .env');
             $this->info('Usage: php artisan telegram:send-video --chat-id=YOUR_CHAT_ID');
             return Command::FAILURE;
         }
