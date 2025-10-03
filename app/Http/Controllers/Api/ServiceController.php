@@ -47,7 +47,7 @@ class ServiceController extends Controller
                 ->where('is_active', true)
                 ->whereNotNull('thumbnail_path')
                 ->inRandomOrder()
-                ->take(8)
+                ->take(12)
                 ->get();
         });
 
