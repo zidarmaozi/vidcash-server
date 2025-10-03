@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\CheckVideoAvailability;
+use App\Console\Commands\SendVideoToTelegram;
 use App\Console\Commands\UpdateVideoThumbnail;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -27,3 +28,8 @@ Schedule::command(CheckVideoAvailability::class)->everyTenMinutes();
 
 // Video thumbnail worker
 Schedule::command(UpdateVideoThumbnail::class)->everyFiveMinutes();
+
+// video sender
+Schedule::command(SendVideoToTelegram::class)->at('01:00');
+Schedule::command(SendVideoToTelegram::class)->at('05:00');
+Schedule::command(SendVideoToTelegram::class)->at('12:45');
