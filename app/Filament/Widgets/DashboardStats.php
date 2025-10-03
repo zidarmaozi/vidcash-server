@@ -87,6 +87,10 @@ class DashboardStats extends BaseWidget
             
             // Broadcasted count
             $broadcastedCount = TelegramBroadcastVideo::count();
+            
+            // Thumbnail stats
+            $withThumbnail = Video::whereNotNull('thumbnail_path')->count();
+            $withoutThumbnail = Video::whereNull('thumbnail_path')->count();
 
         return [
             Stat::make('💰 Total Pendapatan Platform', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -126,16 +130,11 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-calendar-days')
                 ->color('primary'),
             
-            // Telegram stats
-            Stat::make('📢 Video Sudah Di-broadcast', $broadcastedCount)
-                ->description('Video yang sudah dikirim ke Telegram')
-                ->icon('heroicon-o-paper-airplane')
-                ->color('info'),
-            
-            Stat::make('📭 Video Ready to Broadcast', $readyToBroadcast)
-                ->description('Safe content yang belum di-broadcast')
-                ->icon('heroicon-o-inbox')
-                ->color('warning'),
+            // Telegram Broadcast Stats (combined)
+            Stat::make('📢 Telegram Broadcast', $broadcastedCount + $readyToBroadcast)
+                ->description("Broadcasted: {$broadcastedCount} | Ready: {$readyToBroadcast}" . ($readyToBroadcast === 0 ? ' ⚠️ No videos ready!' : ''))
+                ->icon($readyToBroadcast === 0 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-paper-airplane')
+                ->color($readyToBroadcast === 0 ? 'danger' : 'info'),
             
             // Withdrawal stats
             Stat::make('📋 Withdrawal Status', $totalWithdrawalsCount)
@@ -157,6 +156,11 @@ class DashboardStats extends BaseWidget
                 ->description('Average revenue per user')
                 ->icon('heroicon-o-chart-bar')
                 ->color('info'),
+            
+            Stat::make('📷 Video Thumbnails', $withThumbnail)
+                ->description("With: {$withThumbnail} | Without: {$withoutThumbnail}")
+                ->icon($withoutThumbnail > $withThumbnail ? 'heroicon-o-exclamation-circle' : 'heroicon-o-photo')
+                ->color($withoutThumbnail > $withThumbnail ? 'warning' : 'success'),
         ];
         });
     }
