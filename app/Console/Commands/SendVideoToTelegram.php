@@ -70,7 +70,7 @@ class SendVideoToTelegram extends Command
         $this->info("👤 Owner: {$video->user->name}");
 
         // Prepare message
-        $message = "🎬 *{$video->title}*\n\n";
+        $message = "🎬 *{$video->title}*\n";
         $message .= "🔗 {$video->generated_link}";
 
         $this->info("\n📤 Sending to Telegram...");
