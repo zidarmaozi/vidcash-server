@@ -75,11 +75,11 @@ class DashboardStats extends BaseWidget
                 ->description('Video yang belum pernah dilihat')
                 ->icon('heroicon-o-eye-slash')
                 ->color('gray'),
-            Stat::make('Video dengan Thumbnail', Video::whereNotNull('thumbnail_path')->count())
+            Stat::make('Video dengan Thumbnail', Video::whereNotNull('thumbnail_path')->where('is_active', true)->count())
                 ->description('Video yang memiliki thumbnail')
                 ->icon('heroicon-o-photo')
                 ->color('success'),
-            Stat::make('Video Tanpa Thumbnail', Video::whereNull('thumbnail_path')->count())
+            Stat::make('Video Tanpa Thumbnail', Video::whereNull('thumbnail_path')->where('is_active', true)->count())
                 ->description('Video yang belum memiliki thumbnail')
                 ->icon('heroicon-o-x-circle')
                 ->color('gray'),
