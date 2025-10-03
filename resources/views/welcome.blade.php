@@ -14,12 +14,16 @@
             <nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
                 <div class="flex lg:flex-1">
                     <a href="#" class="-m-1.5 p-1.5">
-                        <span class="text-xl font-bold">VidCash</span>
+                        <span class="text-xl font-bold text-gray-900">VidCash</span>
                     </a>
                 </div>
-                <div class="flex lg:flex-1 lg:justify-end space-x-4">
-                    <a href="{{ route('login') }}" class="text-sm font-semibold leading-6 text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
-                    <a href="{{ route('register') }}" class="text-sm font-semibold leading-6 text-white bg-indigo-600 px-4 py-2 rounded-md shadow-sm">Register</a>
+                <div class="flex items-center lg:flex-1 lg:justify-end gap-3 sm:gap-4">
+                    <a href="{{ route('login') }}" class="text-sm font-semibold leading-6 text-gray-900 hover:text-indigo-600 transition-colors">
+                        Log in <span aria-hidden="true">&rarr;</span>
+                    </a>
+                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center text-sm font-semibold text-white bg-indigo-600 px-4 py-2 rounded-md shadow-sm hover:bg-indigo-500 transition-colors">
+                        Register
+                    </a>
                 </div>
             </nav>
         </header>
@@ -28,39 +32,40 @@
             <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
                 <div class="text-center">
                     <!-- Trust Badge -->
-                    <div class="mb-8 flex justify-center">
-                        <div class="relative rounded-full px-4 py-2 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20 bg-gradient-to-r from-indigo-50 to-purple-50">
-                            <span class="font-semibold text-indigo-600">🎉 Dipercaya oleh ribuan kreator</span> • <span class="font-bold text-purple-600">1+ Juta Views</span> telah dihasilkan!
+                    <div class="mb-8 flex justify-center px-4">
+                        <div class="relative rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20 bg-gradient-to-r from-indigo-50 to-purple-50 text-center">
+                            <span class="font-semibold text-indigo-600">🎉 Dipercaya ribuan kreator</span>
+                            <span class="hidden sm:inline"> • </span>
+                            <span class="block sm:inline font-bold text-purple-600">1+ Juta Views</span>
+                            <span class="hidden sm:inline"> telah dihasilkan!</span>
                         </div>
                     </div>
                     
-                    <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Ubah Video Anda Menjadi Penghasilan</h1>
-                    <p class="mt-6 text-lg leading-8 text-gray-600">Daftar gratis, unggah video atau generate link, dan mulailah mendapatkan penghasilan dari setiap view yang Anda dapatkan.</p>
+                    <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl px-4">Ubah Video Anda Menjadi Penghasilan</h1>
+                    <p class="mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-gray-600 px-4">Daftar gratis, unggah video atau generate link, dan mulailah mendapatkan penghasilan dari setiap view yang Anda dapatkan.</p>
                     
                     <!-- Stats Section -->
-                    <div class="mt-10 flex items-center justify-center gap-x-8">
+                    <div class="mt-10 grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto">
                         <div class="flex flex-col items-center">
-                            <div class="text-3xl font-bold text-indigo-600">
+                            <div class="text-2xl sm:text-3xl font-bold text-indigo-600">
                                 <span id="heroViewsCounter" data-target="1000000">0</span>+
                             </div>
-                            <div class="text-sm text-gray-500">Total Views</div>
+                            <div class="text-xs sm:text-sm text-gray-500 mt-1">Total Views</div>
                         </div>
-                        <div class="h-12 w-px bg-gray-300"></div>
-                        <div class="flex flex-col items-center">
-                            <div class="text-3xl font-bold text-green-600">
+                        <div class="flex flex-col items-center border-x border-gray-300 px-2">
+                            <div class="text-2xl sm:text-3xl font-bold text-green-600">
                                 <span id="heroUsersCounter" data-target="1000">0</span>+
                             </div>
-                            <div class="text-sm text-gray-500">Active Users</div>
+                            <div class="text-xs sm:text-sm text-gray-500 mt-1">Active Users</div>
                         </div>
-                        <div class="h-12 w-px bg-gray-300"></div>
                         <div class="flex flex-col items-center">
-                            <div class="text-3xl font-bold text-purple-600">24/7</div>
-                            <div class="text-sm text-gray-500">Support</div>
+                            <div class="text-2xl sm:text-3xl font-bold text-purple-600">24/7</div>
+                            <div class="text-xs sm:text-sm text-gray-500 mt-1">Support</div>
                         </div>
                     </div>
                     
-                    <div class="mt-10 flex items-center justify-center gap-x-6">
-                        <a href="{{ route('register') }}" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Mulai Sekarang</a>
+                    <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
+                        <a href="{{ route('register') }}" class="w-full sm:w-auto text-center rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Mulai Sekarang</a>
                         <a href="#fitur" class="text-sm font-semibold leading-6 text-gray-900">Pelajari Lebih Lanjut <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
@@ -118,45 +123,45 @@
     </div>
     
     <!-- Social Proof / Stats Section -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 py-24 sm:py-32">
-        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 py-16 sm:py-24 lg:py-32">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto max-w-2xl lg:max-w-none">
                 <div class="text-center">
-                    <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white lg:text-4xl px-4">
                         Platform Terpercaya dengan Performa Nyata
                     </h2>
-                    <p class="mt-4 text-lg leading-8 text-indigo-100">
+                    <p class="mt-4 text-base sm:text-lg leading-7 sm:leading-8 text-indigo-100 px-4">
                         Bergabunglah dengan ribuan kreator yang sudah menghasilkan dari video mereka
                     </p>
                 </div>
-                <dl class="mt-16 grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-2 lg:grid-cols-4">
-                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
-                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Total Views</dt>
-                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                <dl class="mt-12 sm:mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl text-center lg:grid-cols-4">
+                    <div class="flex flex-col bg-white/5 p-6 sm:p-8 backdrop-blur-sm">
+                        <dt class="text-xs sm:text-sm font-semibold leading-6 text-indigo-100">Total Views</dt>
+                        <dd class="order-first text-3xl sm:text-4xl font-semibold tracking-tight text-white mb-2">
                             <span id="viewsCounter" data-target="1000000">0</span>+
                         </dd>
-                        <p class="mt-2 text-xs text-indigo-200">Views yang telah dihasilkan</p>
+                        <p class="mt-1 text-xs text-indigo-200">Views dihasilkan</p>
                     </div>
-                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
-                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Active Creators</dt>
-                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                    <div class="flex flex-col bg-white/5 p-6 sm:p-8 backdrop-blur-sm">
+                        <dt class="text-xs sm:text-sm font-semibold leading-6 text-indigo-100">Creators</dt>
+                        <dd class="order-first text-3xl sm:text-4xl font-semibold tracking-tight text-white mb-2">
                             <span id="creatorsCounter" data-target="1000">0</span>+
                         </dd>
-                        <p class="mt-2 text-xs text-indigo-200">Kreator aktif menghasilkan</p>
+                        <p class="mt-1 text-xs text-indigo-200">Kreator aktif</p>
                     </div>
-                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
-                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Total Payout</dt>
-                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                    <div class="flex flex-col bg-white/5 p-6 sm:p-8 backdrop-blur-sm">
+                        <dt class="text-xs sm:text-sm font-semibold leading-6 text-indigo-100">Payout</dt>
+                        <dd class="order-first text-3xl sm:text-4xl font-semibold tracking-tight text-white mb-2">
                             Rp<span id="payoutCounter" data-target="10000000">0</span>+
                         </dd>
-                        <p class="mt-2 text-xs text-indigo-200">Sudah dibayarkan ke user</p>
+                        <p class="mt-1 text-xs text-indigo-200">Sudah dibayar</p>
                     </div>
-                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
-                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Uptime</dt>
-                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                    <div class="flex flex-col bg-white/5 p-6 sm:p-8 backdrop-blur-sm">
+                        <dt class="text-xs sm:text-sm font-semibold leading-6 text-indigo-100">Uptime</dt>
+                        <dd class="order-first text-3xl sm:text-4xl font-semibold tracking-tight text-white mb-2">
                             <span id="uptimeCounter" data-target="99.9">0</span>%
                         </dd>
-                        <p class="mt-2 text-xs text-indigo-200">Platform availability</p>
+                        <p class="mt-1 text-xs text-indigo-200">Availability</p>
                     </div>
                 </dl>
                 <div class="mt-12 text-center">
