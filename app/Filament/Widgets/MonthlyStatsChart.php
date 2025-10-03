@@ -17,8 +17,8 @@ class MonthlyStatsChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Cache for 5 minutes
-        return cache()->remember('monthly_stats_chart_30d', 300, function() {
+        // Cache for 10 minutes for better performance
+        return cache()->remember('monthly_stats_chart_30d', 600, function() {
             // Get data for last 30 days
             $startDate = Carbon::now()->subDays(30);
             
@@ -106,7 +106,7 @@ class MonthlyStatsChart extends ChartWidget
 
     public function getDescription(): ?string
     {
-        return cache()->remember('monthly_stats_description', 300, function() {
+        return cache()->remember('monthly_stats_description', 600, function() {
             $startDate = Carbon::now()->subDays(30);
             $data = View::select(
                     DB::raw('COUNT(*) as total_views'),

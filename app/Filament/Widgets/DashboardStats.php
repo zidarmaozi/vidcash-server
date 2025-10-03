@@ -18,30 +18,91 @@ class DashboardStats extends BaseWidget
     
     protected function getStats(): array
     {
-        $totalWithdrawals = Withdrawal::where('status', 'confirmed')->sum('amount');
-        $totalEventPayouts = \App\Models\EventPayout::where('status', 'confirmed')->sum('prize_amount');
-        
-        // Calculate total platform income from STORED income amounts (not dynamic calculation)
-        $totalStoredIncome = View::where('income_generated', true)->sum('income_amount');
-        $totalViews = View::count();
-        $totalValidatedViews = View::where('validation_passed', true)->count();
-        $totalFailedViews = View::where('validation_passed', false)->count();
-        
-        // Get current CPM for comparison
-        $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
-        
-        // Calculate current user balances
-        $totalUserBalances = User::sum('balance');
-        
-        // Calculate total paid out (withdrawals + event payouts)
-        $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
-
-        // Calculate validation success rate
-        $successRate = $totalViews > 0 ? round(($totalValidatedViews / $totalViews) * 100, 1) : 0;
-        
-        // Calculate active/inactive videos
-        $activeVideos = Video::where('is_active', true)->count();
-        $inactiveVideos = Video::where('is_active', false)->count();
+        // Cache for 5 minutes - balance between freshness & performance
+        return cache()->remember('dashboard_stats_main', 300, function() {
+            // Optimize with single query using aggregate
+            $viewStats = View::selectRaw('
+                SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income,
+                COUNT(*) as total_views,
+                SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as validated_views,
+                SUM(CASE WHEN validation_passed = 0 THEN 1 ELSE 0 END) as failed_views
+            ')->first();
+            
+            $totalStoredIncome = $viewStats->total_income ?? 0;
+            $totalViews = $viewStats->total_views ?? 0;
+            $totalValidatedViews = $viewStats->validated_views ?? 0;
+            $totalFailedViews = $viewStats->failed_views ?? 0;
+            
+            // Optimize withdrawal + event payout with single query
+            $withdrawalStats = Withdrawal::selectRaw('
+                SUM(CASE WHEN status = "confirmed" THEN amount ELSE 0 END) as total_confirmed
+            ')->first();
+            
+            $eventPayoutStats = \App\Models\EventPayout::selectRaw('
+                SUM(CASE WHEN status = "confirmed" THEN prize_amount ELSE 0 END) as total_confirmed
+            ')->first();
+            
+            $totalWithdrawals = $withdrawalStats->total_confirmed ?? 0;
+            $totalEventPayouts = $eventPayoutStats->total_confirmed ?? 0;
+            $totalPaidOut = $totalWithdrawals + $totalEventPayouts;
+            
+            // Get current CPM
+            $currentCpm = (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
+            
+            // User stats in single query
+            $userStats = User::selectRaw('
+                COUNT(*) as total_users,
+                SUM(balance) as total_balance
+            ')->first();
+            
+            $totalUsers = $userStats->total_users ?? 0;
+            $totalUserBalances = $userStats->total_balance ?? 0;
+            
+            // Calculate success rate
+            $successRate = $totalViews > 0 ? round(($totalValidatedViews / $totalViews) * 100, 1) : 0;
+            
+            // Video stats in single query
+            $videoStats = Video::selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive,
+                SUM(CASE WHEN is_safe_content = 1 THEN 1 ELSE 0 END) as safe,
+                SUM(CASE WHEN is_safe_content = 0 THEN 1 ELSE 0 END) as unsafe,
+                SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today
+            ')->first();
+            
+            $activeVideos = $videoStats->active ?? 0;
+            $inactiveVideos = $videoStats->inactive ?? 0;
+            $safeVideos = $videoStats->safe ?? 0;
+            $unsafeVideos = $videoStats->unsafe ?? 0;
+            $todayVideos = $videoStats->today ?? 0;
+            $totalVideos = $videoStats->total ?? 0;
+            
+            // Withdrawal stats - single query
+            $withdrawalAllStats = Withdrawal::selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status = "confirmed" THEN 1 ELSE 0 END) as confirmed,
+                SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected
+            ')->first();
+            
+            $totalWithdrawalsCount = $withdrawalAllStats->total ?? 0;
+            $confirmedWithdrawals = $withdrawalAllStats->confirmed ?? 0;
+            $pendingWithdrawals = $withdrawalAllStats->pending ?? 0;
+            $rejectedWithdrawals = $withdrawalAllStats->rejected ?? 0;
+            
+            // Pending reports count
+            $pendingReportsCount = VideoReport::where('status', 'pending')->count();
+            
+            // Ready to broadcast count
+            $readyToBroadcast = Video::whereDoesntHave('telegramBroadcast')
+                ->where('is_active', true)
+                ->where('is_safe_content', true)
+                ->whereNotNull('thumbnail_path')
+                ->count();
+            
+            // Broadcasted count
+            $broadcastedCount = TelegramBroadcastVideo::count();
 
         return [
             Stat::make('💰 Total Pendapatan Platform', 'Rp' . number_format($totalStoredIncome, 0, ',', '.'))
@@ -64,7 +125,7 @@ class DashboardStats extends BaseWidget
                 ->description("Pengaturan CPM terkini")
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('warning'),
-            Stat::make('👥 Total Pengguna', User::count())
+            Stat::make('👥 Total Pengguna', $totalUsers)
                 ->description('User terdaftar')
                 ->icon('heroicon-o-users')
                 ->color('primary'),
@@ -76,52 +137,43 @@ class DashboardStats extends BaseWidget
                 ->description('Video yang dinonaktifkan')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger'),
-            Stat::make('📅 Video Hari Ini', Video::whereDate('created_at', today())->count())
+            Stat::make('📅 Video Hari Ini', $todayVideos)
                 ->description('Video yang ditambahkan hari ini')
                 ->icon('heroicon-o-calendar-days')
                 ->color('primary'),
-            Stat::make('📢 Video Sudah Di-broadcast', TelegramBroadcastVideo::count())
+            
+            // Telegram stats
+            Stat::make('📢 Video Sudah Di-broadcast', $broadcastedCount)
                 ->description('Video yang sudah dikirim ke Telegram')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('info'),
-            Stat::make('📭 Video Ready to Broadcast', Video::whereDoesntHave('telegramBroadcast')
-                ->where('is_active', true)
-                ->where('is_safe_content', true)
-                ->whereNotNull('thumbnail_path')
-                ->count())
+            
+            Stat::make('📭 Video Ready to Broadcast', $readyToBroadcast)
                 ->description('Safe content yang belum di-broadcast')
                 ->icon('heroicon-o-inbox')
                 ->color('warning'),
-            Stat::make('📋 Withdrawal Status', Withdrawal::count())
-                ->description("Berhasil: " . Withdrawal::where('status', 'confirmed')->count() . " | Pending: " . Withdrawal::where('status', 'pending')->count() . " | Ditolak: " . Withdrawal::where('status', 'rejected')->count())
+            
+            // Withdrawal stats
+            Stat::make('📋 Withdrawal Status', $totalWithdrawalsCount)
+                ->description("Berhasil: {$confirmedWithdrawals} | Pending: {$pendingWithdrawals} | Ditolak: {$rejectedWithdrawals}")
                 ->icon('heroicon-o-clipboard-document-list')
                 ->color('warning'),
-            Stat::make('⚠️ Pending Reports', VideoReport::where('status', 'pending')->count())
+            
+            Stat::make('⚠️ Pending Reports', $pendingReportsCount)
                 ->description('Video reports yang perlu direview')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->color('danger'),
-            Stat::make('🛡️ Safe Content Rate', function() {
-                $totalVideos = Video::count();
-                if ($totalVideos === 0) return '0%';
-                
-                $safeVideos = Video::where('is_safe_content', true)->count();
-                $safeRate = round(($safeVideos / $totalVideos) * 100, 1);
-                
-                return $safeRate . '%';
-            })
-                ->description(Video::where('is_safe_content', true)->count() . ' Safe | ' . Video::where('is_safe_content', false)->count() . ' Unsafe')
+            
+            Stat::make('🛡️ Safe Content Rate', $totalVideos > 0 ? round(($safeVideos / $totalVideos) * 100, 1) . '%' : '0%')
+                ->description($safeVideos . ' Safe | ' . $unsafeVideos . ' Unsafe')
                 ->icon('heroicon-o-shield-check')
                 ->color('success'),
-            Stat::make('💰 Revenue Per User', function() use ($totalStoredIncome) {
-                $userCount = User::count();
-                if ($userCount === 0) return 'Rp0';
-                
-                $rpu = $totalStoredIncome / $userCount;
-                return 'Rp' . number_format($rpu, 0, ',', '.');
-            })
+            
+            Stat::make('💰 Revenue Per User', $totalUsers > 0 ? 'Rp' . number_format($totalStoredIncome / $totalUsers, 0, ',', '.') : 'Rp0')
                 ->description('Average revenue per user')
                 ->icon('heroicon-o-chart-bar')
                 ->color('info'),
         ];
+        });
     }
 }

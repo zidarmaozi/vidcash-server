@@ -19,8 +19,8 @@ class DailyIncomeChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Cache for 5 minutes
-        return cache()->remember('daily_income_chart_30d', 300, function() {
+        // Cache for 10 minutes for better performance
+        return cache()->remember('daily_income_chart_30d', 600, function() {
             // Get last 30 days income data
             $startDate = Carbon::now()->subDays(30);
             
@@ -81,7 +81,7 @@ class DailyIncomeChart extends ChartWidget
 
     public function getDescription(): ?string
     {
-        return cache()->remember('daily_income_description', 300, function() {
+        return cache()->remember('daily_income_description', 600, function() {
             $startDate = Carbon::now()->subDays(30);
             
             $stats = View::select(
