@@ -61,7 +61,7 @@ class ServiceController extends Controller
             'video_code' => 'required|exists:videos,video_code',
         ]);
 
-        $mockResponse = response()->header('Accept-State', '1')->json([
+        $mockResponse = response()->withHeaders(['Accept-State' => '1'])->json([
             'message' => 'View recorded successfully.'
         ]);
 
