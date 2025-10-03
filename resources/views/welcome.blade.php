@@ -27,10 +27,40 @@
         <div class="relative isolate px-6 pt-14 lg:px-8">
             <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
                 <div class="text-center">
+                    <!-- Trust Badge -->
+                    <div class="mb-8 flex justify-center">
+                        <div class="relative rounded-full px-4 py-2 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20 bg-gradient-to-r from-indigo-50 to-purple-50">
+                            <span class="font-semibold text-indigo-600">🎉 Dipercaya oleh ribuan kreator</span> • <span class="font-bold text-purple-600">1+ Juta Views</span> telah dihasilkan!
+                        </div>
+                    </div>
+                    
                     <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Ubah Video Anda Menjadi Penghasilan</h1>
                     <p class="mt-6 text-lg leading-8 text-gray-600">Daftar gratis, unggah video atau generate link, dan mulailah mendapatkan penghasilan dari setiap view yang Anda dapatkan.</p>
+                    
+                    <!-- Stats Section -->
+                    <div class="mt-10 flex items-center justify-center gap-x-8">
+                        <div class="flex flex-col items-center">
+                            <div class="text-3xl font-bold text-indigo-600">
+                                <span id="heroViewsCounter" data-target="1000000">0</span>+
+                            </div>
+                            <div class="text-sm text-gray-500">Total Views</div>
+                        </div>
+                        <div class="h-12 w-px bg-gray-300"></div>
+                        <div class="flex flex-col items-center">
+                            <div class="text-3xl font-bold text-green-600">
+                                <span id="heroUsersCounter" data-target="1000">0</span>+
+                            </div>
+                            <div class="text-sm text-gray-500">Active Users</div>
+                        </div>
+                        <div class="h-12 w-px bg-gray-300"></div>
+                        <div class="flex flex-col items-center">
+                            <div class="text-3xl font-bold text-purple-600">24/7</div>
+                            <div class="text-sm text-gray-500">Support</div>
+                        </div>
+                    </div>
+                    
                     <div class="mt-10 flex items-center justify-center gap-x-6">
-                        <a href="{{ route('register') }}" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Mulai Sekarang</a>
+                        <a href="{{ route('register') }}" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Mulai Sekarang</a>
                         <a href="#fitur" class="text-sm font-semibold leading-6 text-gray-900">Pelajari Lebih Lanjut <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
@@ -87,6 +117,60 @@
         </div>
     </div>
     
+    <!-- Social Proof / Stats Section -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl lg:max-w-none">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        Platform Terpercaya dengan Performa Nyata
+                    </h2>
+                    <p class="mt-4 text-lg leading-8 text-indigo-100">
+                        Bergabunglah dengan ribuan kreator yang sudah menghasilkan dari video mereka
+                    </p>
+                </div>
+                <dl class="mt-16 grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
+                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Total Views</dt>
+                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                            <span id="viewsCounter" data-target="1000000">0</span>+
+                        </dd>
+                        <p class="mt-2 text-xs text-indigo-200">Views yang telah dihasilkan</p>
+                    </div>
+                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
+                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Active Creators</dt>
+                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                            <span id="creatorsCounter" data-target="1000">0</span>+
+                        </dd>
+                        <p class="mt-2 text-xs text-indigo-200">Kreator aktif menghasilkan</p>
+                    </div>
+                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
+                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Total Payout</dt>
+                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                            Rp<span id="payoutCounter" data-target="10000000">0</span>+
+                        </dd>
+                        <p class="mt-2 text-xs text-indigo-200">Sudah dibayarkan ke user</p>
+                    </div>
+                    <div class="flex flex-col bg-white/5 p-8 backdrop-blur-sm">
+                        <dt class="text-sm font-semibold leading-6 text-indigo-100">Uptime</dt>
+                        <dd class="order-first text-4xl font-semibold tracking-tight text-white">
+                            <span id="uptimeCounter" data-target="99.9">0</span>%
+                        </dd>
+                        <p class="mt-2 text-xs text-indigo-200">Platform availability</p>
+                    </div>
+                </dl>
+                <div class="mt-12 text-center">
+                    <a href="{{ route('register') }}" class="inline-flex items-center gap-x-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                        Bergabung Sekarang
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <footer class="bg-white">
         <div class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
             <div class="mt-8 md:order-1 md:mt-0">
@@ -94,5 +178,68 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        // Counter Animation
+        function animateCounter(element, target, duration = 2000, isDecimal = false, isHero = false) {
+            const start = 0;
+            const increment = target / (duration / 16); // 60fps
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                
+                if (isDecimal) {
+                    element.textContent = current.toFixed(1);
+                } else if (isHero && target >= 1000000) {
+                    // Format as "1M" for millions in hero section
+                    const millions = current / 1000000;
+                    element.textContent = millions >= 1 ? millions.toFixed(1) + 'M' : Math.floor(current).toLocaleString('id-ID');
+                } else if (isHero && target >= 1000) {
+                    // Format as "1K" for thousands in hero section
+                    const thousands = current / 1000;
+                    element.textContent = thousands >= 1 ? Math.floor(thousands) + 'K' : Math.floor(current);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString('id-ID');
+                }
+            }, 16);
+        }
+
+        // Intersection Observer untuk trigger animation saat visible
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target;
+                    const target = parseFloat(counter.dataset.target);
+                    const isDecimal = counter.id === 'uptimeCounter';
+                    const isHero = counter.id.startsWith('hero');
+                    
+                    // Trigger animation
+                    animateCounter(counter, target, 2500, isDecimal, isHero);
+                    
+                    // Stop observing after animation starts
+                    observer.unobserve(counter);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        // Observe all counters
+        document.addEventListener('DOMContentLoaded', () => {
+            const counters = [
+                'heroViewsCounter', 'heroUsersCounter',
+                'viewsCounter', 'creatorsCounter', 'payoutCounter', 'uptimeCounter'
+            ];
+            counters.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    observer.observe(element);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
