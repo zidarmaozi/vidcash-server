@@ -7,6 +7,7 @@ use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class VideoController extends Controller
 {
@@ -186,6 +187,31 @@ class VideoController extends Controller
         'errors' => $errors,
     ]);
 }
+
+    /**
+     * Update video title.
+     */
+    public function update(Request $request, Video $video)
+    {
+        if (Auth::id() !== $video->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255'
+        ]);
+
+        $video->update($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Judul video berhasil diperbarui.',
+                'video' => $video
+            ]);
+        }
+
+        return redirect()->route('videos.index')->with('success', 'Judul video berhasil diperbarui.');
+    }
 
     /**
      * Menghapus video.

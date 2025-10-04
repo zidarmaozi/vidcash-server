@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
     Route::get('/videos/generate', [VideoController::class, 'create'])->name('videos.create');
     Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
+    Route::patch('/videos/{video}', [VideoController::class, 'update'])->name('videos.update');
     Route::delete('/videos/{video}', [VideoController::class, 'destroy'])->name('videos.destroy');
     Route::post('/videos/bulk-action', [VideoController::class, 'bulkAction'])->name('videos.bulkAction');
     Route::post('/videos/generate-from-links', [VideoController::class, 'generateFromLinks'])->name('videos.generateFromLinks');
