@@ -17,15 +17,17 @@ class VideoController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         $search = $request->query('search');
         $sortBy = $request->query('sort_by', 'created_at');
         $sortDir = $request->query('sort_dir', 'desc');
         $perPage = $request->query('per_page', 10);
 
-        $videosQuery = $user->videos()->withCount(['views' => function ($query) {
-            $query->where('validation_passed', true);
-        }]);
+        $videosQuery = $user->videos()->withCount([
+            'views' => function ($query) {
+                $query->where('validation_passed', true);
+            }
+        ]);
 
         if ($search) {
             // Pencarian sekarang menggunakan accessor, jadi kita cari di video_code
@@ -62,13 +64,14 @@ class VideoController extends Controller
     {
         $validated = $request->validate(['originalUrls' => 'required|string']);
         $urls = preg_split('/\\r\\n|\\r|\\n/', $validated['originalUrls']);
-        
+
         $newlyCreatedVideos = collect();
         $errors = [];
 
         foreach ($urls as $originalUrl) {
             $trimmedUrl = trim($originalUrl);
-            if (empty($trimmedUrl)) continue;
+            if (empty($trimmedUrl))
+                continue;
 
             $videoId = null;
             if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $trimmedUrl, $matches)) {
@@ -107,7 +110,7 @@ class VideoController extends Controller
     {
         $validated = $request->validate(['original_url' => 'required|url']);
         $originalUrl = $validated['original_url'];
-        
+
         parse_str(parse_url($originalUrl, PHP_URL_QUERY), $queryParams);
         $videoId = $queryParams['id'] ?? null;
 
@@ -141,52 +144,53 @@ class VideoController extends Controller
     }
 
     public function generateFromLinks(Request $request)
-{
-    $validated = $request->validate([
-        'urls' => 'required|array',
-        'urls.*' => 'string',
-    ]);
+    {
+        $validated = $request->validate([
+            'urls' => 'required|array',
+            'urls.*' => 'string',
+        ]);
 
-    $urls = $validated['urls'];
-    $newlyCreatedVideos = collect();
-    $errors = [];
+        $urls = $validated['urls'];
+        $newlyCreatedVideos = collect();
+        $errors = [];
 
-    foreach ($urls as $originalUrl) {
-        $trimmedUrl = trim($originalUrl);
-        if (empty($trimmedUrl)) continue;
-
-        $videoId = null;
-        if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $trimmedUrl, $matches)) {
-            $videoId = $matches[1];
-        }
-
-        if ($videoId) {
-            $existingVideo = Video::where('video_code', $videoId)->first();
-            if ($existingVideo && $existingVideo->user_id !== Auth::id()) {
-                $errors[] = "Link dengan ID {$videoId} sudah diklaim pengguna lain.";
+        foreach ($urls as $originalUrl) {
+            $trimmedUrl = trim($originalUrl);
+            if (empty($trimmedUrl))
                 continue;
-            } elseif ($existingVideo) {
-                $newlyCreatedVideos->push($existingVideo);
-                continue;
+
+            $videoId = null;
+            if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $trimmedUrl, $matches)) {
+                $videoId = $matches[1];
             }
 
-            $newVideo = Video::create([
-                'user_id' => Auth::id(),
-                'title' => 'Video ' . $videoId,
-                'original_link' => $trimmedUrl,
-                'video_code' => $videoId,
-            ]);
-            $newlyCreatedVideos->push($newVideo);
-        } else {
-            $errors[] = "Format URL tidak valid: " . Str::limit($trimmedUrl, 30);
-        }
-    }
+            if ($videoId) {
+                $existingVideo = Video::where('video_code', $videoId)->first();
+                if ($existingVideo && $existingVideo->user_id !== Auth::id()) {
+                    $errors[] = "Link dengan ID {$videoId} sudah diklaim pengguna lain.";
+                    continue;
+                } elseif ($existingVideo) {
+                    $newlyCreatedVideos->push($existingVideo);
+                    continue;
+                }
 
-    return response()->json([
-        'new_videos' => $newlyCreatedVideos,
-        'errors' => $errors,
-    ]);
-}
+                $newVideo = Video::create([
+                    'user_id' => Auth::id(),
+                    'title' => 'Video ' . $videoId,
+                    'original_link' => $trimmedUrl,
+                    'video_code' => $videoId,
+                ]);
+                $newlyCreatedVideos->push($newVideo);
+            } else {
+                $errors[] = "Format URL tidak valid: " . Str::limit($trimmedUrl, 30);
+            }
+        }
+
+        return response()->json([
+            'new_videos' => $newlyCreatedVideos,
+            'errors' => $errors,
+        ]);
+    }
 
     /**
      * Update video title.
@@ -228,26 +232,26 @@ class VideoController extends Controller
     /**
      * Menangani aksi bulk (pilih banyak).
      */
-   // app/Http/Controllers/VideoController.php
+    // app/Http/Controllers/VideoController.php
 
-public function bulkAction(Request $request)
-{
-    $validated = $request->validate([
-        'action' => 'required|string|in:delete', // Hanya izinkan aksi 'delete'
-        'video_ids' => 'required|array',
-        'video_ids.*' => 'exists:videos,id',
-    ]);
+    public function bulkAction(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => 'required|string|in:delete', // Hanya izinkan aksi 'delete'
+            'video_ids' => 'required|array',
+            'video_ids.*' => 'exists:videos,id',
+        ]);
 
-    $videoIds = $validated['video_ids'];
-    
-    // Pastikan video milik user yang sedang login
-    $videos = Auth::user()->videos()->whereIn('id', $videoIds);
+        $videoIds = $validated['video_ids'];
 
-    if ($validated['action'] === 'delete') {
-        $videos->delete();
-        return back()->with('success', count($videoIds) . ' link berhasil dihapus.');
+        // Pastikan video milik user yang sedang login
+        $videos = Auth::user()->videos()->whereIn('id', $videoIds);
+
+        if ($validated['action'] === 'delete') {
+            $videos->delete();
+            return back()->with('success', count($videoIds) . ' link berhasil dihapus.');
+        }
+
+        return back()->with('error', 'Aksi tidak valid.');
     }
-
-    return back()->with('error', 'Aksi tidak valid.');
-}
 }
