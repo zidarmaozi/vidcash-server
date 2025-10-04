@@ -41,6 +41,9 @@ class UpdateVideoThumbnail extends Command
         $errorIds = [];
 
         while (true) {
+            sleep(1);
+            $this->info("Sleeping for 1 second at {$this->getTimestamp()}");
+            
             $video = $this->getWaitingVideo($errorIds);
 
             if (!$video) {
