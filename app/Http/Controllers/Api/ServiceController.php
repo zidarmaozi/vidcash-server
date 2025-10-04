@@ -19,19 +19,11 @@ class ServiceController extends Controller
         $cacheKey = $videoCode ? "settings_{$videoCode}" : "settings_default";
         
         return Cache::remember($cacheKey, 600, function() use ($videoCode) {
-            $ipLimitSetting = Setting::where('key', 'ip_view_limit')->first();
-            $cpmSetting = Setting::where('key', 'cpm')->first();
             $watchTimeSetting = Setting::where('key', 'watch_time_seconds')->first();
-            // Ambil data level validasi default
-            $validationLevelSetting = Setting::where('key', 'default_validation_level')->first();
             $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
 
             return response()->json([
-                'ip_view_limit' => $ipLimitSetting ? (int) $ipLimitSetting->value : 2,
-                'cpm' => $cpmSetting ? (int) $cpmSetting->value : 10,
                 'watch_time_seconds' => $watchTimeSetting ? (int) $watchTimeSetting->value : 10,
-                // TAMBAHKAN KEY INI
-                'default_validation_level' => $validationLevelSetting ? (int) $validationLevelSetting->value : 5,
                 'is_available' => (bool) $video,
                 'is_active' => $video ? (bool) $video->is_active : false,
                 'video_title' => $video ? $video->title : null,
@@ -47,7 +39,7 @@ class ServiceController extends Controller
                 ->where('is_active', true)
                 ->whereNotNull('thumbnail_path')
                 ->inRandomOrder()
-                ->take(12)
+                ->take(16)
                 ->get();
         });
 
