@@ -193,7 +193,7 @@ class VideoController extends Controller
      */
     public function update(Request $request, Video $video)
     {
-        if (Auth::id() !== $video->user_id) {
+        if (Auth::id() !== (int) $video->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
