@@ -21,7 +21,7 @@ Route::get('thumbnail-check', function () {
 
     return response()->json([
         'is_available' => $video ? true : false,
-        'thumbnail_url' => $video ? $video->thumbnail_url : null,
+        'video_code' => $video ? $video->video_code : null,
     ]);
 });
 
