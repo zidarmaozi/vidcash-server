@@ -17,11 +17,15 @@ Route::post('/service/record-view', [ServiceController::class, 'recordView']);
 Route::get('/video-info/{video:video_code}', [ServiceController::class, 'getVideoInfo']);
 
 Route::get('thumbnail-check', function () {
-    $video = Video::whereNotNull('thumbnail_path')->whereNull('is_safe_content')->orderBy('created_at', 'desc')->first();
+    $video = Video::whereNotNull('thumbnail_path')
+                ->where('is_safe_content', '!=', true)
+                ->where('thumbnail_ai_check', '!=', true)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
     return response()->json([
         'is_available' => $video ? true : false,
-        'video_code' => $video ? $video->video_code : null,
+        'video_code' => $video?->video_code,
     ]);
 });
 
@@ -40,6 +44,7 @@ Route::post('thumbnail-check', function (Request $request) {
     }
 
     $video->is_safe_content = $validated['is_safe_content'];
+    $video->is_ai_checked = true;
     $video->save();
 
     return response(200);

@@ -17,7 +17,8 @@ class Video extends Model
         'validation_level',
         'is_active',
         'is_safe_content',
-        'thumbnail_path'
+        'thumbnail_path',
+        'is_ai_checked',
     ];
 
      /**
