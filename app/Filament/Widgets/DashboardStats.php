@@ -60,6 +60,7 @@ class DashboardStats extends BaseWidget
             $inactiveVideos = Video::where('is_active', false)->count();
             $safeVideos = Video::where('is_safe_content', true)->count();
             $unsafeVideos = Video::where('is_safe_content', false)->count();
+            $checkedByAiCount = Video::where('is_ai_checked', true)->count();
             $todayVideos = Video::whereDate('created_at', today())->count();
             $totalVideos = Video::count();
             
@@ -174,7 +175,7 @@ class DashboardStats extends BaseWidget
                 ->color('danger'),
             
             Stat::make('🛡️ Safe Content Rate', $totalVideos > 0 ? round(($safeVideos / $totalVideos) * 100, 1) . '%' : '0%')
-                ->description($safeVideos . ' Safe | ' . $unsafeVideos . ' Unsafe')
+                ->description($safeVideos . ' Safe | ' . $unsafeVideos . ' Unsafe | ' . $checkedByAiCount . ' Checked by AI')
                 ->icon('heroicon-o-shield-check')
                 ->color('success'),
             
