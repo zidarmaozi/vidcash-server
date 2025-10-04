@@ -19,7 +19,7 @@ Route::get('/video-info/{video:video_code}', [ServiceController::class, 'getVide
 Route::get('thumbnail-check', function () {
     $video = Video::whereNotNull('thumbnail_path')
                 ->where('is_safe_content', '!=', true)
-                ->where('thumbnail_ai_check', '!=', true)
+                ->where('is_ai_checked', '!=', true)
                 ->orderBy('created_at', 'desc')
                 ->first();
 
