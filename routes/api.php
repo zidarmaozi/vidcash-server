@@ -49,5 +49,5 @@ Route::post('thumbnail-check', function (Request $request) {
 
     return response()->json([
         'message' => 'Video checked successfully',
-    , 200]);
+    ], 200);
 });
