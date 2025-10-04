@@ -47,5 +47,7 @@ Route::post('thumbnail-check', function (Request $request) {
     $video->is_ai_checked = true;
     $video->save();
 
-    return response(200);
+    return response()->json([
+        'message' => 'Video checked successfully',
+    , 200]);
 });
