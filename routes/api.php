@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Video;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
 
@@ -14,3 +15,32 @@ Route::get('/service/settings/{videoCode?}', [ServiceController::class, 'getSett
 Route::get('/service/related-videos/{videoCode?}', [ServiceController::class, 'getRelatedVideos']);
 Route::post('/service/record-view', [ServiceController::class, 'recordView']);
 Route::get('/video-info/{video:video_code}', [ServiceController::class, 'getVideoInfo']);
+
+Route::get('thumbnail-check', function () {
+    $video = Video::whereNotNull('thumbnail_path')->whereNull('is_safe_content')->orderBy('created_at', 'desc')->first();
+
+    return response()->json([
+        'is_available' => $video ? true : false,
+        'thumbnail_url' => $video ? $video->thumbnail_url : null,
+    ]);
+});
+
+Route::post('thumbnail-check', function (Request $request) {
+    $validated = $request->validate([
+        'video_code' => 'required|exists:videos,video_code',
+        'is_safe_content' => 'required|boolean',
+    ]);
+
+    $video = Video::where('video_code', $validated['video_code'])->first();
+
+    if (!$video) {
+        return response()->json([
+            'message' => 'No video found',
+        ], 404);
+    }
+
+    $video->is_safe_content = $validated['is_safe_content'];
+    $video->save();
+
+    return response(200);
+});
