@@ -38,6 +38,7 @@ class ServiceController extends Controller
             return Video::select('id', 'video_code', 'title', 'thumbnail_path')
                 ->where('is_active', true)
                 ->whereNotNull('thumbnail_path')
+                ->where('is_safe_content', true)
                 ->inRandomOrder()
                 ->take(16)
                 ->get();
