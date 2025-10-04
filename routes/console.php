@@ -35,6 +35,7 @@ Schedule::command(UpdateVideoThumbnail::class)->everyFiveMinutes();
 Schedule::command(SendVideoToTelegram::class)->at('01:00');
 Schedule::command(SendVideoToTelegram::class)->at('05:00');
 Schedule::command(SendVideoToTelegram::class)->at('12:45');
+Schedule::command(SendVideoToTelegram::class)->at('21:00');
 
 // cleanup old broadcasts
 Schedule::command(CleanupOldBroadcasts::class)->daily();
