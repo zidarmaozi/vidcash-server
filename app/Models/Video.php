@@ -35,7 +35,7 @@ class Video extends Model
     public function getGeneratedLinkAttribute(): string
     {
         $domain = Setting::where('key', 'video_domain')->first()?->value ?? 'videy.in';
-        return 'https://' . $domain . '?id=' . $this->video_code;
+        return 'https://' . $domain . $this->video_code;
     }
 
     /**
