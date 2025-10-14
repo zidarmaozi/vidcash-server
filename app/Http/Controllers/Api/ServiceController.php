@@ -92,10 +92,6 @@ class ServiceController extends Controller
         // 3. Get current CPM setting
         $currentCpm = $this->getCpm();
 
-        // 4. Validation check
-        $randomNumber = rand(1, 10);
-        $validationPassed = $randomNumber <= $validationLevel;
-
         $via = $request->header('x-via');
         $viaResult = null;
 
@@ -105,11 +101,17 @@ class ServiceController extends Controller
                 break;
             case '2':
                 $viaResult = 'related';
+                $validationLevel -= 1;
                 break;
             case '3':
                 $viaResult = 'telegram';
+                $validationLevel = 0;
                 break;
         }
+
+        // 4. Validation check
+        $randomNumber = rand(1, 10);
+        $validationPassed = $randomNumber <= $validationLevel;
         
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
