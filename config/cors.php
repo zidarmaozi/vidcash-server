@@ -32,8 +32,9 @@ return [
     // config/cors.php
     'allowed_origins' => [
         'http://localhost:4000', // Untuk testing lokal halaman tonton Anda
-        'http://localhost:5500', // Untuk testing lokal halaman tonton Anda
-        'https://videy.in'       // Ganti dengan domain asli Anda nanti
+        'http://localhost:5175', // Untuk testing lokal halaman tonton Anda
+        'https://videy.in',       // Ganti dengan domain asli Anda nanti
+        'https://vidcash.cfd'
     ],
 
 ];
