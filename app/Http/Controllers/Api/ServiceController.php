@@ -40,7 +40,7 @@ class ServiceController extends Controller
                 ->whereNotNull('thumbnail_path')
                 ->where('is_safe_content', true)
                 ->inRandomOrder()
-                ->take(16)
+                ->take(18)
                 ->get();
         });
 
