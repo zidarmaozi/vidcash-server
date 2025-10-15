@@ -14,6 +14,13 @@ public function store(Request $request)
     $user = Auth::user();
     $minWithdrawal = Setting::where('key', 'min_withdrawal')->first()->value ?? 10000;
 
+    // Cek apakah user sudah memiliki withdrawal yang masih pending
+    $hasPendingWithdrawal = $user->withdrawals()->where('status', 'pending')->exists();
+    
+    if ($hasPendingWithdrawal) {
+        return back()->withErrors(['withdrawal' => 'Anda masih memiliki permintaan penarikan yang sedang diproses. Silakan tunggu hingga selesai sebelum mengajukan penarikan baru.']);
+    }
+
     $validated = $request->validate([
         'amount' => 'required|numeric|min:' . $minWithdrawal . '|max:' . $user->balance,
         'payment_account_id' => 'required|exists:payment_accounts,id',
@@ -46,12 +53,16 @@ public function index()
     $withdrawalMethods = $methodsSetting ? explode(',', $methodsSetting->value) : []; // Beri array kosong jika null
 
     $withdrawals = $user->withdrawals()->latest()->paginate(10);
+    
+    // Cek apakah ada withdrawal pending
+    $hasPendingWithdrawal = $user->withdrawals()->where('status', 'pending')->exists();
 
     return view('withdrawals.index', [
         'withdrawals' => $withdrawals,
         'minWithdrawal' => $minWithdrawal,
         'withdrawalMethods' => $withdrawalMethods,
-        'withdrawalAmounts' => $withdrawalAmounts
+        'withdrawalAmounts' => $withdrawalAmounts,
+        'hasPendingWithdrawal' => $hasPendingWithdrawal
     ]);
 }
 }

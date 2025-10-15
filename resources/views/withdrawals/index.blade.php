@@ -33,11 +33,32 @@
                             <p class="text-sm text-gray-600">Saldo Anda Saat Ini</p>
                             <p class="text-2xl font-bold text-indigo-800">Rp{{ number_format(Auth::user()->balance, 0, ',', '.') }}</p>
                         </div>
-                        <form action="{{ route('withdrawals.store') }}" method="POST">
+                        
+                        @if($hasPendingWithdrawal)
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">
+                                            Penarikan Sedang Diproses
+                                        </h3>
+                                        <div class="mt-2 text-sm text-yellow-700">
+                                            <p>Anda masih memiliki permintaan penarikan yang sedang diproses. Silakan tunggu hingga selesai sebelum mengajukan penarikan baru.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        <form action="{{ route('withdrawals.store') }}" method="POST" @if($hasPendingWithdrawal) onsubmit="return false;" @endif>
                             @csrf
                             <div>
                                 <label for="payment_account_id" class="block text-sm font-medium text-gray-700">Pilih Akun Penarikan</label>
-                                <select id="payment_account_id" name="payment_account_id" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                                <select id="payment_account_id" name="payment_account_id" class="mt-1 block w-full border-gray-300 rounded-md @if($hasPendingWithdrawal) bg-gray-100 cursor-not-allowed @endif" required @if($hasPendingWithdrawal) disabled @endif>
                                     <option value="">-- Pilih Akun --</option>
                                     @foreach(Auth::user()->paymentAccounts as $account)
                                         <option value="{{ $account->id }}">{{ $account->method_name }} - {{ $account->account_number }} ({{ $account->account_name }})</option>
@@ -50,13 +71,20 @@
                                 <div id="amount-buttons" class="mt-2 grid grid-cols-3 gap-2">
                                     @foreach($withdrawalAmounts as $amount)
                                         <button type="button" data-amount="{{ $amount }}" 
-                                                class="amount-btn w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md text-sm">
+                                                class="amount-btn w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md text-sm @if($hasPendingWithdrawal) bg-gray-100 cursor-not-allowed @endif" 
+                                                @if($hasPendingWithdrawal) disabled @endif>
                                             Rp{{ number_format($amount, 0, ',', '.') }}
                                         </button>
                                     @endforeach
                                 </div>
                             </div>
-                            <button type="submit" class="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Kirim Permintaan</button>
+                            <button type="submit" class="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 @if($hasPendingWithdrawal) bg-gray-400 cursor-not-allowed hover:bg-gray-400 @endif" @if($hasPendingWithdrawal) disabled @endif>
+                                @if($hasPendingWithdrawal)
+                                    Penarikan Sedang Diproses
+                                @else
+                                    Kirim Permintaan
+                                @endif
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -209,6 +237,9 @@
         // --- Logika Pilihan Nominal ---
         amountButtons.forEach(button => {
             button.addEventListener('click', function() {
+                // Skip jika button disabled
+                if (this.disabled) return;
+                
                 amountButtons.forEach(btn => {
                     btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
                     btn.classList.add('bg-white', 'text-gray-700');
