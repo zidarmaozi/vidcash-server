@@ -31,14 +31,35 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'referral_code' => ['nullable', 'string', 'exists:users,referral_code'],
         ]);
+
+        $referrer = null;
+        if ($request->referral_code) {
+            $referrer = User::where('referral_code', $request->referral_code)->first();
+        }
+
+        // Generate unique referral code
+        do {
+            $newReferralCode = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8));
+        } while (User::where('referral_code', $newReferralCode)->exists());
+
+        // Initial balance: 0 + optional referee bonus
+        $initialBalance = 0;
+        if ($referrer) {
+            $refereeBonus = \App\Models\Setting::where('key', 'referee_bonus_amount')->value('value') ?? 0;
+            $initialBalance = (float) $refereeBonus;
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'referral_code' => $newReferralCode,
+            'referred_by' => $referrer ? $referrer->id : null,
+            'balance' => $initialBalance,
         ]);
 
         event(new Registered($user));

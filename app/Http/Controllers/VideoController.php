@@ -23,11 +23,17 @@ class VideoController extends Controller
         $sortDir = $request->query('sort_dir', 'desc');
         $perPage = $request->query('per_page', 10);
 
+        $folderId = $request->query('folder_id');
+
         $videosQuery = $user->videos()->withCount([
             'views' => function ($query) {
                 $query->where('validation_passed', true);
             }
         ]);
+
+        if ($folderId) {
+            $videosQuery->where('folder_id', $folderId);
+        }
 
         if ($search) {
             // Pencarian sekarang menggunakan accessor, jadi kita cari di video_code
@@ -37,14 +43,18 @@ class VideoController extends Controller
         $videosQuery->orderBy($sortBy, $sortDir);
 
         $videos = $videosQuery->paginate($perPage);
+        $folders = $user->folders()->get();
 
         return view('videos.index', [
             'videos' => $videos,
+            'folders' => $folders,
+            'currentFolder' => $folderId ? $folders->find($folderId) : null,
             'filters' => [
                 'search' => $search,
                 'sort_by' => $sortBy,
                 'sort_dir' => $sortDir,
                 'per_page' => $perPage,
+                'folder_id' => $folderId,
             ]
         ]);
     }
@@ -237,7 +247,7 @@ class VideoController extends Controller
     public function bulkAction(Request $request)
     {
         $validated = $request->validate([
-            'action' => 'required|string|in:delete', // Hanya izinkan aksi 'delete'
+            'action' => 'required|string|in:delete,move', // Hanya izinkan aksi 'delete' atau 'move'
             'video_ids' => 'required|array',
             'video_ids.*' => 'exists:videos,id',
         ]);
@@ -250,6 +260,15 @@ class VideoController extends Controller
         if ($validated['action'] === 'delete') {
             $videos->delete();
             return back()->with('success', count($videoIds) . ' link berhasil dihapus.');
+        }
+
+        if ($validated['action'] === 'move') {
+            $request->validate([
+                'folder_id' => 'required|exists:folders,id,user_id,' . Auth::id(),
+            ]);
+
+            $videos->update(['folder_id' => $request->folder_id]);
+            return back()->with('success', count($videoIds) . ' link berhasil dipindahkan.');
         }
 
         return back()->with('error', 'Aksi tidak valid.');

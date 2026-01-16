@@ -1,203 +1,222 @@
 <x-app-layout>
-    {{-- CSS untuk Tabel Responsif dan Animasi --}}
-    <style>
-        @media screen and (max-width: 768px) {
-            .responsive-table thead { display: none; }
-            .responsive-table tr { 
-                display: block; 
-                margin-bottom: 1rem;
-                border-bottom: 2px solid #ddd;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .responsive-table td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.75rem 1rem;
-                text-align: right;
-                border-bottom: 1px solid #eee;
-            }
-            .responsive-table td::before {
-                content: attr(data-label);
-                font-weight: bold;
-                text-align: left;
-                margin-right: 1rem;
-                color: #374151;
-            }
-            .responsive-table td:last-child { border-bottom: 0; }
-            
-            /* Mobile button improvements */
-            .responsive-table .flex.items-center.space-x-3 {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: stretch;
-            }
-            
-            .responsive-table .inline-flex.items-center {
-                justify-content: center;
-                width: 100%;
-                font-size: 0.75rem;
-                padding: 0.5rem 0.75rem;
-            }
-        }
-        
-        /* Smooth transitions for all interactive elements */
-        .copy-btn, .edit-btn, .delete-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .copy-btn:hover, .edit-btn:hover, .delete-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        /* Loading animation for buttons */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .loading {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Modal backdrop blur effect */
-        .modal-backdrop {
-            backdrop-filter: blur(4px);
-        }
-        
-        /* Custom scrollbar for modal */
-        .modal-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        
-        .modal-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        .modal-content::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        
-        .modal-content::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
-        }
-    </style>
-
     <main class="py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-900">Kelola Link</h1>
-                <a href="{{ route('videos.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm">
-                    Buat Link Baru
-                </a>
+            <!-- Folder Navigation -->
+            <div class="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar">
+                    <a href="{{ route('videos.index') }}" 
+                       class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {{ !request('folder_id') ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700' }}">
+                        Semua Video
+                    </a>
+                    @foreach($folders as $folder)
+                        <div class="group relative flex items-center">
+                            <a href="{{ route('videos.index', ['folder_id' => $folder->id]) }}" 
+                               class="px-4 py-2 pr-9 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {{ request('folder_id') == $folder->id ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700' }}">
+                                {{ $folder->name }}
+                            </a>
+                            <button type="button" 
+                                    class="folder-settings-btn absolute right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 {{ request('folder_id') == $folder->id ? 'text-indigo-200 hover:text-white' : '' }}"
+                                    data-folder-id="{{ $folder->id }}"
+                                    data-folder-name="{{ $folder->name }}"
+                                    data-folder-slug="{{ $folder->slug }}"
+                                    data-folder-public="{{ $folder->public_link }}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                            </button>
+                        </div>
+                    @endforeach
+                    <button type="button" id="create-folder-btn" class="px-3 py-2 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-indigo-500 hover:text-indigo-500 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Folder Baru
+                    </button>
+                </div>
+
+                @if(isset($currentFolder))
+                    <div class="flex items-center gap-2">
+                        <a href="{{ $currentFolder->public_link }}" target="_blank" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                             Lihat Folder Publik
+                        </a>
+                    </div>
+                @endif
             </div>
 
-            <!-- Panel Kontrol & Filter -->
-            <div class="bg-white p-4 rounded-lg border mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                    <!-- Kolom Kiri: Pilih Semua & Filter -->
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="select-all-checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                            <label for="select-all-checkbox" class="ml-2 text-sm font-medium text-gray-700 cursor-pointer">Pilih Semua</label>
-                        </div>
-                        <form action="{{ route('videos.index') }}" method="GET" class="flex items-center space-x-2">
-                            <select name="per_page" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
-                                <option value="10" @if($filters['per_page'] == 10) selected @endif>10</option>
-                                <option value="25" @if($filters['per_page'] == 25) selected @endif>25</option>
-                                <option value="50" @if($filters['per_page'] == 50) selected @endif>50</option>
-                            </select>
-                            <select name="sort_by" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
-                                <option value="created_at" @if($filters['sort_by'] == 'created_at') selected @endif>Tanggal</option>
-                                <option value="views_count" @if($filters['sort_by'] == 'views_count') selected @endif>Views</option>
-                            </select>
-                            <select name="sort_dir" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
-                                <option value="desc" @if($filters['sort_dir'] == 'desc') selected @endif>Terbaru</option>
-                                <option value="asc" @if($filters['sort_dir'] == 'asc') selected @endif>Terlama</option>
-                            </select>
-                        </form>
+            <!-- Header Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                         <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 tracking-tight">
+                            Kelola Link
+                        </h1>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Atur dan monitor semua link video Anda di sini.</p>
                     </div>
-
-                    <!-- Kolom Kanan: Search / Bulk Actions -->
-                    <div class="flex items-center md:justify-end">
-                        <!-- Wadah Pencarian (Awalnya terlihat) -->
-                        <form id="search-container" action="{{ route('videos.index') }}" method="GET" class="flex items-center space-x-2 w-full md:w-auto">
-                            <input type="text" name="search" class="w-full text-sm border-gray-300 rounded-md" placeholder="Pencarian..." value="{{ $filters['search'] ?? '' }}">
-                            <button type="submit" class="px-4 py-2 bg-gray-800 text-white text-sm rounded-md">Cari</button>
-                        </form>
-
-                        <!-- Wadah Bulk Action (Awalnya tersembunyi) -->
-                        <div id="bulk-action-bar" class="hidden flex items-center space-x-2">
-                            <span id="selected-count" class="text-sm font-semibold"></span>
-                            <button id="bulk-copy-btn" class="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-200">Salin</button>
-                            <button id="bulk-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Hapus</button>
-                        </div>
-                    </div>
+                    
+                    <a href="{{ route('videos.create') }}" class="group relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 bg-indigo-600 rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                        <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+                        <svg class="w-5 h-5 mr-2 -ml-1 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Buat Link Baru
+                    </a>
                 </div>
             </div>
 
-            <!-- Tabel Responsif -->
-            <div class="bg-white rounded-lg border overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 responsive-table">
-                     <thead class="bg-gray-50">
-                        <tr>
-                            <th class="p-4"><input type="checkbox" id="select-all-checkbox-table" class="h-4 w-4 text-indigo-600 border-gray-300 rounded"></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Video</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Views</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tindakan</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse ($videos as $video)
+            <!-- Merged Panel: Control & Table -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                
+                <!-- Header / Controls -->
+                <div class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800">
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <!-- Left Side: Thumb Toggle & Filters -->
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <!-- Select All -->
+                            <div class="flex items-center bg-white dark:bg-gray-700 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-600 shadow-sm">
+                                <input type="checkbox" id="select-all-checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-600 dark:border-gray-500 cursor-pointer">
+                                <label for="select-all-checkbox" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">Semua</label>
+                            </div>
+
+                            <!-- Thumbnail Toggle Switch -->
+                            <label class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-600 shadow-sm select-none">
+                                <input type="checkbox" id="toggle-thumbnails" class="sr-only peer">
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                                <span class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300">Thumbnail</span>
+                            </label>
+                            
+                            <!-- Filters -->
+                            <form action="{{ route('videos.index') }}" method="GET" class="flex items-center gap-2">
+                                <!-- Per Page Selector -->
+                                <select name="per_page" class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" onchange="this.form.submit()">
+                                    <option value="10" @if(($filters['per_page'] ?? 10) == 10) selected @endif>10 per hal</option>
+                                    <option value="20" @if(($filters['per_page'] ?? '') == 20) selected @endif>20 per hal</option>
+                                    <option value="50" @if(($filters['per_page'] ?? '') == 50) selected @endif>50 per hal</option>
+                                    <option value="100" @if(($filters['per_page'] ?? '') == 100) selected @endif>100 per hal</option>
+                                    <option value="500" @if(($filters['per_page'] ?? '') == 500) selected @endif>500 per hal</option>
+                                </select>
+
+                                <select name="sort_by" class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" onchange="this.form.submit()">
+                                    <option value="created_at" @if(($filters['sort_by'] ?? '') == 'created_at') selected @endif>Tanggal</option>
+                                    <option value="views_count" @if(($filters['sort_by'] ?? '') == 'views_count') selected @endif>Views</option>
+                                </select>
+                                <select name="sort_dir" class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" onchange="this.form.submit()">
+                                    <option value="desc" @if(($filters['sort_dir'] ?? '') == 'desc') selected @endif>Terbaru</option>
+                                    <option value="asc" @if(($filters['sort_dir'] ?? '') == 'asc') selected @endif>Terlama</option>
+                                </select>
+                                
+                                <input type="hidden" name="search" value="{{ $filters['search'] ?? '' }}">
+                            </form>
+                        </div>
+
+                        <!-- Right Side: Search & Bulk Actions -->
+                        <div class="flex items-center w-full md:w-auto md:justify-end gap-2">
+                            <!-- Search -->
+                            <form id="search-container" action="{{ route('videos.index') }}" method="GET" class="relative flex-1 md:flex-none md:w-64">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+                                <input type="text" name="search" class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm" placeholder="Cari video..." value="{{ $filters['search'] ?? '' }}">
+                            </form>
+
+                            <!-- Bulk Actions (Hidden by default) -->
+                            <div id="bulk-action-bar" class="hidden flex items-center gap-2 animate-fade-in pl-2 md:pl-4 md:border-l border-gray-200 dark:border-gray-700">
+                                <span id="selected-count" class="hidden md:inline-block text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">0</span>
+                                <button id="bulk-copy-btn" class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-gray-200 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700" title="Salin Link">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                </button>
+                                <button id="bulk-move-btn" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 dark:border-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-900/30" title="Pindahkan ke Folder">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path></svg>
+                                </button>
+                                <button id="bulk-delete-btn" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/30" title="Hapus">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-[800px] md:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <td class="p-4" data-label="Pilih"><input type="checkbox" class="link-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded" value="{{ $video->id }}" data-link="{{ $video->generated_link }}"></td>
-                                <td class="px-6 py-4" data-label="Video">
-                                    <div class="space-y-1">
-                                        <div class="text-sm font-semibold text-gray-900">{{ $video->title }}</div>
-                                        <a href="{{ $video->generated_link }}" target="_blank" class="text-xs text-indigo-600 hover:underline break-all">{{ $video->generated_link }}</a>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm" data-label="Views">{{ $video->views_count }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm" data-label="Dibuat">{{ $video->created_at->format('d M Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm" data-label="Tindakan">
-                                    <div class="flex items-center space-x-3">
-                                        <button type="button" class="copy-btn inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 hover:text-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1" data-link="{{ $video->generated_link }}">
-                                            <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                            Salin
-                                        </button>
-                                        <button type="button" class="edit-btn inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" data-video-id="{{ $video->id }}" data-video-title="{{ $video->title }}">
-                                            <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Edit
-                                        </button>
-                                        <form method="POST" action="{{ route('videos.destroy', $video) }}" class="delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="delete-btn inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 hover:text-red-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
-                                                <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Hapus
+                                <th scope="col" class="p-4 w-10"><input type="checkbox" id="select-all-checkbox-table" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"></th>
+                                <!-- Thumbnail Column Header (Toggleable) -->
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider thumbnail-col hidden">Thumbnail</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Judul Video</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID Video</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Views</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dibuat</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @forelse ($videos as $video)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150 group">
+                                    <td class="p-4"><input type="checkbox" class="link-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer" value="{{ $video->id }}" data-link="{{ $video->generated_link }}"></td>
+                                    
+                                    <!-- Thumbnail Column (Toggleable) -->
+                                    <td class="px-6 py-4 whitespace-nowrap thumbnail-col hidden">
+                                        @if($video->thumbnail_url)
+                                            <button type="button" class="view-thumbnail-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border border-gray-200 shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                                                    data-image-url="{{ $video->thumbnail_url }}"
+                                                    data-video-title="{{ $video->title }}">
+                                                <svg class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                Lihat
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data untuk ditampilkan.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 border border-transparent">
+                                                No Image
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Judul (2 Lines) -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 max-w-[250px]" title="{{ $video->title }}">{{ $video->title }}</div>
+                                        </div>
+                                    </td>
+
+                                    <!-- ID / Link -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <button type="button" class="copy-btn group flex items-center space-x-2 text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors" data-link="{{ $video->generated_link }}" title="Klik untuk menyalin link">
+                                            <span class="font-mono bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded text-xs group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800">
+                                                {{ $video->video_code }}
+                                            </span>
+                                            <svg class="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                        </button>
+                                    </td>
+
+                                    <!-- Info Lain -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ number_format($video->views_count) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $video->created_at->format('d M Y') }}</td>
+                                    
+                                    <!-- Actions -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            <button type="button" class="edit-btn p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30" data-video-id="{{ $video->id }}" data-video-title="{{ $video->title }}" title="Edit">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </button>
+                                            <form method="POST" action="{{ route('videos.destroy', $video) }}" class="delete-form inline-block">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="delete-btn p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-900/30" title="Hapus">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg class="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Belum ada video</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Mulai dengan membuat link baru.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Pagination -->
@@ -207,514 +226,508 @@
         </div>
     </main>
     
+    <!-- Hidden Forms & Modals -->
     <!-- Form tersembunyi untuk Bulk Action -->
     <form id="bulk-action-form" action="{{ route('videos.bulkAction') }}" method="POST" class="hidden">
         @csrf
         <input type="hidden" name="action" id="bulk-action-input">
         <input type="hidden" name="folder_id" id="bulk-folder-id-input">
-        {{-- Input untuk video_ids[] akan ditambahkan oleh JavaScript --}}
     </form>
 
     <!-- Modal Konfirmasi Hapus -->
-    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <svg class="h-6 w-6 text-red-600" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900 mt-5">Hapus Link</h3>
-            <p id="delete-modal-text" class="mt-2 text-sm text-gray-500">Apakah Anda yakin? Aksi ini tidak dapat dibatalkan.</p>
-            <div class="mt-6 flex justify-center space-x-4">
-                <button id="cancel-delete-btn" type="button" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">Batal</button>
-                <button id="confirm-delete-btn" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">Hapus</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Info (untuk Salin) -->
-    <div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 transition-opacity duration-300 modal-backdrop">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm text-center transform transition-all duration-300 scale-95 opacity-0" id="info-modal-content">
-            <div class="p-6">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-green-400 to-green-500 shadow-lg animate-pulse">
-                     <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+            <div class="p-6 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
-                <h3 id="info-modal-title" class="text-xl font-semibold text-gray-900 mt-6">Berhasil!</h3>
-                <p id="info-modal-text" class="mt-2 text-sm text-gray-600"></p>
-                <div class="mt-8">
-                    <button id="close-info-btn" type="button" class="px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        OK
-                    </button>
-                </div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Hapus Link</h3>
+                <p id="delete-modal-text" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Apakah Anda yakin? Aksi ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-center gap-3">
+                <button id="cancel-delete-btn" type="button" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Batal</button>
+                <button id="confirm-delete-btn" type="button" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-colors">Hapus</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Edit Title -->
-    <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 transition-opacity duration-300 modal-backdrop">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="edit-modal-content">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between p-6 border-b border-gray-100">
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
-                        <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Edit Judul Video</h3>
-                        <p class="text-sm text-gray-500">Ubah judul video Anda</p>
-                    </div>
-                </div>
-                <button id="close-edit-modal" type="button" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+    <!-- Modal Thumbnail -->
+    <div id="thumbnail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-300">
+        <div class="relative bg-black rounded-xl overflow-hidden shadow-2xl max-w-3xl w-full max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 bg-black/50 absolute top-0 left-0 right-0 z-10">
+                <h3 id="thumbnail-modal-title" class="text-white font-medium text-sm truncate pr-4">Video Thumbnail</h3>
+                <button id="close-thumbnail-btn" type="button" class="text-white/70 hover:text-white bg-black/20 hover:bg-white/20 rounded-full p-1 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            
-            <!-- Modal Body -->
+            <div class="flex-1 flex items-center justify-center bg-black p-0 overflow-hidden">
+                <img id="thumbnail-modal-image" src="" alt="Thumbnail" class="max-w-full max-h-[80vh] object-contain" loading="lazy">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Title (Reused & Styled) -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md transform transition-all scale-100" id="edit-modal-content">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Edit Judul Video</h3>
+                <button id="close-edit-modal" type="button" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
             <form id="edit-form" class="p-6">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4">
                     <div>
-                        <label for="edit-title-input" class="block text-sm font-medium text-gray-700 mb-2">
-                            Judul Video
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <div class="relative">
-                            <input type="text" id="edit-title-input" name="title" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400" 
-                                   maxlength="255" required placeholder="Masukkan judul video...">
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <span id="char-count" class="text-xs text-gray-400">0/255</span>
-                            </div>
+                        <label for="edit-title-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Judul Video</label>
+                        <input type="text" id="edit-title-input" name="title" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-colors" required>
+                        <div class="flex justify-end mt-1">
+                             <span id="char-count" class="text-xs text-gray-400">0/255</span>
                         </div>
-                        <p class="mt-1 text-xs text-gray-500">Judul akan membantu Anda mengidentifikasi video dengan mudah</p>
                     </div>
                 </div>
-                
-                <!-- Modal Footer -->
-                <div class="mt-8 flex justify-end space-x-3">
-                    <button id="cancel-edit-btn" type="button" 
-                            class="px-6 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                        Batal
-                    </button>
-                    <button id="save-edit-btn" type="submit" 
-                            class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg">
-                        <span class="flex items-center space-x-2">
-                            <svg id="save-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span id="save-text">Simpan</span>
-                        </span>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="cancel-edit-btn" type="button" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">Batal</button>
+                    <button id="save-edit-btn" type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none shadow-sm transition-colors flex items-center">
+                        <span id="save-text">Simpan</span>
+                        <svg id="save-icon" class="ml-2 h-4 w-4 hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // === Elemen UI ===
-                const allCheckboxes = document.querySelectorAll('.link-checkbox');
-                const selectAllCheckboxHeader = document.getElementById('select-all-checkbox');
-                const selectAllCheckboxTable = document.getElementById('select-all-checkbox-table');
-                const bulkActionBar = document.getElementById('bulk-action-bar');
-                const searchContainer = document.getElementById('search-container');
-                const selectedCountSpan = document.getElementById('selected-count');
-                const bulkActionForm = document.getElementById('bulk-action-form');
-                const bulkCopyBtn = document.getElementById('bulk-copy-btn');
-                const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
-                
-                // === Elemen Modal Hapus ===
-                const deleteModal = document.getElementById('delete-confirm-modal');
-                const deleteModalText = document.getElementById('delete-modal-text');
-                const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-                const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-                let formToSubmit = null;
 
-                // === Elemen Modal Info ===
-                const infoModal = document.getElementById('info-modal');
-                const infoModalText = document.getElementById('info-modal-text');
-                const closeInfoBtn = document.getElementById('close-info-btn');
-                
-                // === Elemen Modal Edit ===
-                const editModal = document.getElementById('edit-modal');
-                const editForm = document.getElementById('edit-form');
-                const editTitleInput = document.getElementById('edit-title-input');
-                const cancelEditBtn = document.getElementById('cancel-edit-btn');
-                const saveEditBtn = document.getElementById('save-edit-btn');
-                
-                let selectedVideos = new Set();
+    <!-- Modal Create Folder -->
+    <div id="create-folder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Buat Folder Baru</h3>
+                <form action="{{ route('folders.store') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label for="folder-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Folder</label>
+                        <input type="text" id="folder-name" name="name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-colors" required>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" id="cancel-create-folder" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Buat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                // === Fungsi untuk menyalin teks (kompatibel dengan HTTP) ===
-                function copyToClipboard(text, successMessage) {
-                    const textarea = document.createElement('textarea');
-                    textarea.value = text;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    try {
-                        document.execCommand('copy');
-                        showInfoModal(successMessage);
-                    } catch (err) {
-                        alert('Gagal menyalin. Silakan coba secara manual.');
-                    }
-                    document.body.removeChild(textarea);
+    <!-- Modal Manage Folder (Rename/Delete) -->
+    <div id="manage-folder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pengaturan Folder</h3>
+                
+                <!-- Rename Form -->
+                <form id="rename-folder-form" method="POST" class="mb-6">
+                    @csrf
+                    @method('PATCH')
+                    <div class="mb-4">
+                        <label for="edit-folder-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Folder</label>
+                        <input type="text" id="edit-folder-name" name="name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-colors" required>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Simpan Nama</button>
+                    </div>
+                </form>
+
+                <hr class="border-gray-200 dark:border-gray-700 my-4">
+
+                <!-- Delete Form -->
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-sm font-medium text-red-600 dark:text-red-400">Hapus Folder</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Link di dalam folder tidak akan terhapus.</p>
+                    </div>
+                    <form id="delete-folder-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/50">Hapus</button>
+                    </form>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button type="button" id="close-manage-folder" class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Move to Folder -->
+    <div id="move-folder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pindahkan ke Folder</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Pilih folder tujuan untuk link yang dipilih.</p>
+                
+                <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                    @foreach($folders as $folder)
+                        <button type="button" class="select-folder-btn flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left" data-folder-id="{{ $folder->id }}">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ $folder->name }}</span>
+                        </button>
+                    @endforeach
+                    <button type="button" class="select-folder-btn flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left" data-folder-id="">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 italic">Lepaskan dari Folder (Umum)</span>
+                    </button>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" id="cancel-move-folder" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // === Utilities ===
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
                 }
+            });
 
-                // === Fungsi untuk update UI ===
-                function updateBulkUI() {
-                    const hasSelection = selectedVideos.size > 0;
-                    if (bulkActionBar) bulkActionBar.classList.toggle('hidden', !hasSelection);
-                    if (searchContainer) searchContainer.classList.toggle('hidden', hasSelection);
-                    if (hasSelection) {
-                        selectedCountSpan.textContent = `${selectedVideos.size} terpilih`;
-                    }
-                    const allChecked = selectedVideos.size === allCheckboxes.length && allCheckboxes.length > 0;
-                    if (selectAllCheckboxHeader) selectAllCheckboxHeader.checked = allChecked;
-                    if (selectAllCheckboxTable) selectAllCheckboxTable.checked = allChecked;
-                }
-
-                allCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', () => {
-                        checkbox.checked ? selectedVideos.add(checkbox.value) : selectedVideos.delete(checkbox.value);
-                        updateBulkUI();
-                    });
+            const showToast = (message, type = 'success') => {
+                Toast.fire({
+                    icon: type,
+                    title: message
                 });
+            };
 
-                // === FUNGSI DIPERBAIKI UNTUK "PILIH SEMUA" ===
-                function handleSelectAll(masterCheckbox) {
-                    const isChecked = masterCheckbox.checked;
-                    allCheckboxes.forEach(checkbox => {
-                        checkbox.checked = isChecked;
-                        // Perbarui Set secara manual di dalam loop
-                        if (isChecked) {
-                            selectedVideos.add(checkbox.value);
-                        } else {
-                            selectedVideos.delete(checkbox.value);
-                        }
+            const copyToClipboard = (text, message = 'Link disalin ke clipboard') => {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast(message);
+                    }).catch(() => {
+                        fallbackCopyTextToClipboard(text, message);
                     });
-                    // Panggil update UI sekali saja setelah loop selesai
+                } else {
+                    fallbackCopyTextToClipboard(text, message);
+                }
+            };
+
+            const fallbackCopyTextToClipboard = (text, message) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '0';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if(successful) {
+                         showToast(message);
+                    } else {
+                         showToast('Gagal menyalin link', 'error');
+                    }
+                } catch (err) {
+                    showToast('Gagal menyalin link', 'error');
+                }
+                document.body.removeChild(textarea);
+            };
+
+            // === Bulk Actions UI ===
+            const allCheckboxes = document.querySelectorAll('.link-checkbox');
+            const selectAllCheckboxes = document.querySelectorAll('#select-all-checkbox, #select-all-checkbox-table');
+            const bulkActionBar = document.getElementById('bulk-action-bar');
+            const searchContainer = document.getElementById('search-container');
+            const selectedCountSpan = document.getElementById('selected-count');
+            const selectedVideos = new Set();
+
+            const updateBulkUI = () => {
+                const count = selectedVideos.size;
+                selectedCountSpan.textContent = count;
+                
+                if (count > 0) {
+                    bulkActionBar.classList.remove('hidden');
+                    searchContainer.classList.add('hidden', 'md:hidden'); // Hide on mobile too if active
+                } else {
+                    bulkActionBar.classList.add('hidden');
+                    searchContainer.classList.remove('hidden', 'md:hidden');
+                }
+                
+                const allChecked = count === allCheckboxes.length && count > 0;
+                selectAllCheckboxes.forEach(cb => cb.checked = allChecked);
+            };
+
+            allCheckboxes.forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    e.target.checked ? selectedVideos.add(e.target.value) : selectedVideos.delete(e.target.value);
                     updateBulkUI();
-                }
-                
-                if(selectAllCheckboxHeader) selectAllCheckboxHeader.addEventListener('change', () => handleSelectAll(selectAllCheckboxHeader));
-                if(selectAllCheckboxTable) selectAllCheckboxTable.addEventListener('change', () => handleSelectAll(selectAllCheckboxTable));
-                
-                // === Logika Modal ===
-                function showDeleteModal(form, text) {
-                    formToSubmit = form;
-                    deleteModalText.textContent = text;
-                    deleteModal.classList.remove('hidden');
-                }
-                
-                function showInfoModal(text) {
-                    infoModalText.textContent = text;
-                    
-                    // Show modal with animation
-                    infoModal.classList.remove('hidden');
-                    
-                    // Trigger animation after a small delay
-                    setTimeout(() => {
-                        const modalContent = document.getElementById('info-modal-content');
-                        modalContent.style.transform = 'scale(1)';
-                        modalContent.style.opacity = '1';
-                    }, 10);
-                }
-
-                cancelDeleteBtn.addEventListener('click', () => {
-                    deleteModal.classList.add('hidden');
-                    formToSubmit = null;
-                });
-
-                confirmDeleteBtn.addEventListener('click', () => {
-                    if (formToSubmit) {
-                        formToSubmit.submit();
-                    }
-                });
-
-                closeInfoBtn.addEventListener('click', () => {
-                    const modalContent = document.getElementById('info-modal-content');
-                    modalContent.style.transform = 'scale(0.95)';
-                    modalContent.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        infoModal.classList.add('hidden');
-                    }, 300);
-                });
-
-                // === Fungsi Modal Edit ===
-                let currentVideoId = null;
-
-                function showEditModal(videoId, currentTitle) {
-                    currentVideoId = videoId;
-                    editTitleInput.value = currentTitle;
-                    updateCharCount();
-                    
-                    // Show modal with animation
-                    editModal.classList.remove('hidden');
-                    
-                    // Trigger animation after a small delay
-                    setTimeout(() => {
-                        const modalContent = document.getElementById('edit-modal-content');
-                        modalContent.style.transform = 'scale(1)';
-                        modalContent.style.opacity = '1';
-                    }, 10);
-                    
-                    // Focus input after animation
-                    setTimeout(() => {
-                        editTitleInput.focus();
-                        editTitleInput.select();
-                    }, 300);
-                }
-
-                function hideEditModal() {
-                    const modalContent = document.getElementById('edit-modal-content');
-                    modalContent.style.transform = 'scale(0.95)';
-                    modalContent.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        editModal.classList.add('hidden');
-                        currentVideoId = null;
-                        editTitleInput.value = '';
-                        updateCharCount();
-                    }, 300);
-                }
-
-                function updateCharCount() {
-                    const charCount = document.getElementById('char-count');
-                    const currentLength = editTitleInput.value.length;
-                    const maxLength = 255;
-                    
-                    charCount.textContent = `${currentLength}/${maxLength}`;
-                    
-                    // Change color based on character count
-                    if (currentLength > maxLength * 0.9) {
-                        charCount.classList.remove('text-gray-400');
-                        charCount.classList.add('text-red-500');
-                    } else if (currentLength > maxLength * 0.7) {
-                        charCount.classList.remove('text-gray-400', 'text-red-500');
-                        charCount.classList.add('text-yellow-500');
-                    } else {
-                        charCount.classList.remove('text-yellow-500', 'text-red-500');
-                        charCount.classList.add('text-gray-400');
-                    }
-                }
-
-                // Event listeners untuk modal edit
-                cancelEditBtn.addEventListener('click', hideEditModal);
-                
-                // Close modal when clicking close button
-                document.getElementById('close-edit-modal').addEventListener('click', hideEditModal);
-                
-                // Close modal when clicking outside
-                editModal.addEventListener('click', function(e) {
-                    if (e.target === editModal) {
-                        hideEditModal();
-                    }
-                });
-                
-                // Character counter
-                editTitleInput.addEventListener('input', updateCharCount);
-                
-                // Escape key to close modal
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
-                        hideEditModal();
-                    }
-                });
-
-                editForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    if (!currentVideoId) return;
-
-                    const newTitle = editTitleInput.value.trim();
-                    if (!newTitle) {
-                        // Add error styling
-                        editTitleInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
-                        editTitleInput.focus();
-                        
-                        // Remove error styling after 3 seconds
-                        setTimeout(() => {
-                            editTitleInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
-                        }, 3000);
-                        
-                        return;
-                    }
-
-                    // Set loading state
-                    setLoadingState(true);
-
-                    try {
-                        const response = await fetch(`/videos/${currentVideoId}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                title: newTitle
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        if (response.ok) {
-                            // Success animation
-                            setSuccessState();
-                            
-                            setTimeout(() => {
-                                hideEditModal();
-                                showInfoModal('Judul video berhasil diperbarui!');
-                                // Reload page to show updated data
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1500);
-                            }, 1000);
-                        } else {
-                            throw new Error(data.message || 'Terjadi kesalahan saat memperbarui judul.');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        setErrorState(error.message);
-                    } finally {
-                        // Reset loading state after delay
-                        setTimeout(() => {
-                            setLoadingState(false);
-                        }, 1000);
-                    }
-                });
-
-                function setLoadingState(isLoading) {
-                    const saveIcon = document.getElementById('save-icon');
-                    const saveText = document.getElementById('save-text');
-                    
-                    if (isLoading) {
-                        saveEditBtn.disabled = true;
-                        saveText.textContent = 'Menyimpan...';
-                        
-                        // Add spinning animation to icon
-                        saveIcon.innerHTML = `
-                            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        `;
-                    } else {
-                        saveEditBtn.disabled = false;
-                        saveText.textContent = 'Simpan';
-                        
-                        // Reset icon
-                        saveIcon.innerHTML = `
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        `;
-                    }
-                }
-
-                function setSuccessState() {
-                    const saveIcon = document.getElementById('save-icon');
-                    const saveText = document.getElementById('save-text');
-                    
-                    saveIcon.innerHTML = `
-                        <svg class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    `;
-                    saveText.textContent = 'Berhasil!';
-                    saveEditBtn.classList.remove('from-blue-600', 'to-indigo-600', 'hover:from-blue-700', 'hover:to-indigo-700');
-                    saveEditBtn.classList.add('from-green-500', 'to-green-600', 'bg-green-500');
-                }
-
-                function setErrorState(message) {
-                    const saveIcon = document.getElementById('save-icon');
-                    const saveText = document.getElementById('save-text');
-                    
-                    saveIcon.innerHTML = `
-                        <svg class="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    `;
-                    saveText.textContent = 'Gagal';
-                    saveEditBtn.classList.remove('from-blue-600', 'to-indigo-600', 'hover:from-blue-700', 'hover:to-indigo-700');
-                    saveEditBtn.classList.add('from-red-500', 'to-red-600', 'bg-red-500');
-                    
-                    // Show error message
-                    setTimeout(() => {
-                        alert(message);
-                        // Reset button after showing error
-                        setTimeout(() => {
-                            setLoadingState(false);
-                        }, 1000);
-                    }, 500);
-                }
-
-                // Event listener untuk tombol edit
-                document.body.addEventListener('click', function(event) {
-                    if (event.target.closest('.edit-btn')) {
-                        const button = event.target.closest('.edit-btn');
-                        const videoId = button.dataset.videoId;
-                        const currentTitle = button.dataset.videoTitle;
-                        showEditModal(videoId, currentTitle);
-                    }
-                });
-
-
-                // === Event Listener untuk Tombol Aksi ===
-                if (bulkDeleteBtn) {
-                    bulkDeleteBtn.addEventListener('click', () => {
-                        if (selectedVideos.size > 0) {
-                            // PERBAIKAN: Siapkan form SEBELUM menampilkan modal
-                            document.getElementById('bulk-action-input').value = 'delete';
-                            bulkActionForm.querySelectorAll('input[name="video_ids[]"]').forEach(input => input.remove());
-                            selectedVideos.forEach(videoId => {
-                                const input = document.createElement('input');
-                                input.type = 'hidden';
-                                input.name = 'video_ids[]';
-                                input.value = videoId;
-                                bulkActionForm.appendChild(input);
-                            });
-                            showDeleteModal(bulkActionForm, `Apakah Anda yakin ingin menghapus ${selectedVideos.size} link yang dipilih?`);
-                        } else {
-                            alert('Pilih setidaknya satu link.');
-                        }
-                    });
-                }
-
-                document.querySelectorAll('.delete-form').forEach(form => {
-                    form.addEventListener('submit', e => {
-                        e.preventDefault(); // Mencegah submit langsung
-                        showDeleteModal(form, 'Apakah Anda yakin ingin menghapus link ini?');
-                    });
-                });
-
-                if (bulkCopyBtn) {
-                    bulkCopyBtn.addEventListener('click', () => {
-                        let linksToCopy = [];
-                        allCheckboxes.forEach(checkbox => {
-                            if (checkbox.checked) {
-                                linksToCopy.push(checkbox.dataset.link);
-                            }
-                        });
-                        if (linksToCopy.length > 0) {
-                            copyToClipboard(linksToCopy.join('\n'), `${linksToCopy.length} link berhasil disalin!`);
-                        }
-                    });
-                }
-
-                // Event listener untuk tombol salin individual
-                document.body.addEventListener('click', function(event) {
-                    if (event.target.closest('.copy-btn')) {
-                        const button = event.target.closest('.copy-btn');
-                        const linkToCopy = button.dataset.link;
-                        copyToClipboard(linkToCopy, 'Link berhasil disalin!');
-                    }
                 });
             });
-        </script>
+
+            selectAllCheckboxes.forEach(master => {
+                master.addEventListener('change', (e) => {
+                    const checked = e.target.checked;
+                    allCheckboxes.forEach(cb => {
+                        cb.checked = checked;
+                        checked ? selectedVideos.add(cb.value) : selectedVideos.delete(cb.value);
+                    });
+                    updateBulkUI();
+                });
+            });
+
+            // === Thumbnail Toggle Logic ===
+            const thumbToggle = document.getElementById('toggle-thumbnails');
+            const thumbCols = document.querySelectorAll('.thumbnail-col');
+            
+            // Load saved state
+            const savedThumbState = localStorage.getItem('showThumbnails');
+            if (savedThumbState === 'true') {
+                thumbToggle.checked = true;
+                thumbCols.forEach(el => el.classList.remove('hidden'));
+            }
+
+            thumbToggle.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                localStorage.setItem('showThumbnails', isChecked);
+                thumbCols.forEach(el => {
+                    if (isChecked) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                });
+            });
+
+            // === Actions (Copy, Delete) ===
+            document.body.addEventListener('click', (e) => {
+                const copyBtn = e.target.closest('.copy-btn');
+                if (copyBtn) {
+                    copyToClipboard(copyBtn.dataset.link);
+                }
+            });
+
+            // Bulk Copy
+            document.getElementById('bulk-copy-btn')?.addEventListener('click', () => {
+                const links = Array.from(allCheckboxes)
+                    .filter(cb => selectedVideos.has(cb.value))
+                    .map(cb => cb.dataset.link);
+                
+                if (links.length) {
+                    copyToClipboard(links.join('\n'), `${links.length} link disalin`);
+                }
+            });
+
+            // === Modals Management ===
+            const toggleModal = (modalId, show = true) => {
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+                
+                if (show) {
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            };
+
+            // Thumbnail Modal
+            const thumbModal = document.getElementById('thumbnail-modal');
+            const thumbImg = document.getElementById('thumbnail-modal-image');
+            const thumbTitle = document.getElementById('thumbnail-modal-title');
+
+            document.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.view-thumbnail-btn');
+                if (btn) {
+                    thumbImg.src = btn.dataset.imageUrl;
+                    thumbTitle.textContent = btn.dataset.videoTitle || 'Thumbnail';
+                    toggleModal('thumbnail-modal', true);
+                }
+            });
+
+            document.getElementById('close-thumbnail-btn')?.addEventListener('click', () => toggleModal('thumbnail-modal', false));
+            thumbModal?.addEventListener('click', (e) => {
+                 if(e.target === thumbModal) toggleModal('thumbnail-modal', false);
+            });
+
+            // Delete Modal & Logic
+            let formToSubmit = null;
+            const deleteModal = document.getElementById('delete-confirm-modal');
+            
+            const showDeleteConfirm = (form, text) => {
+                formToSubmit = form;
+                document.getElementById('delete-modal-text').textContent = text;
+                toggleModal('delete-confirm-modal', true);
+            };
+
+            document.querySelectorAll('.delete-form').forEach(form => {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showDeleteConfirm(form, 'Yakin ingin menghapus link ini?');
+                });
+            });
+
+            document.getElementById('bulk-delete-btn')?.addEventListener('click', () => {
+                if (!selectedVideos.size) return;
+                const form = document.getElementById('bulk-action-form');
+                form.querySelector('#bulk-action-input').value = 'delete';
+                
+                // Clear old inputs
+                form.querySelectorAll('input[name="video_ids[]"]').forEach(el => el.remove());
+                
+                // Add new inputs
+                selectedVideos.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'video_ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+                
+                showDeleteConfirm(form, `Yakin menghapus ${selectedVideos.size} link terpilih?`);
+            });
+
+            document.getElementById('confirm-delete-btn')?.addEventListener('click', () => formToSubmit?.submit());
+            document.getElementById('cancel-delete-btn')?.addEventListener('click', () => toggleModal('delete-confirm-modal', false));
+
+            // Edit Modal Logic
+            const editModal = document.getElementById('edit-modal');
+            const editTitleInput = document.getElementById('edit-title-input');
+            let currentEditId = null;
+
+            document.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (btn) {
+                    currentEditId = btn.dataset.videoId;
+                    editTitleInput.value = btn.dataset.videoTitle;
+                    toggleModal('edit-modal', true);
+                }
+            });
+
+            document.getElementById('close-edit-modal')?.addEventListener('click', () => toggleModal('edit-modal', false));
+            document.getElementById('cancel-edit-btn')?.addEventListener('click', () => toggleModal('edit-modal', false));
+
+            document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if(!currentEditId) return;
+                
+                const btn = document.getElementById('save-edit-btn');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'Saving...';
+
+                try {
+                    const res = await fetch(`/videos/${currentEditId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                             'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ title: editTitleInput.value })
+                    });
+                    
+                    if(res.ok) {
+                        showToast('Judul berhasil diupdate');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        throw new Error('Gagal update');
+                    }
+                } catch (err) {
+                    showToast(err.message || 'Error', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            });
+            
+             // Char counter logic
+            editTitleInput?.addEventListener('input', function() {
+                 document.getElementById('char-count').textContent = `${this.value.length}/255`;
+            });
+
+            // === FOLDER LOGIC (Event Delegation) ===
+            
+            document.body.addEventListener('click', (e) => {
+                // Create Folder Button
+                const createBtn = e.target.closest('#create-folder-btn');
+                if (createBtn) {
+                    toggleModal('create-folder-modal', true);
+                    return;
+                }
+
+                // Close Buttons (Delegated for consistency, though ID listeners work too)
+                if (e.target.closest('#cancel-create-folder')) {
+                    toggleModal('create-folder-modal', false);
+                    return;
+                }
+
+                // Manage Folder Button (Settings)
+                const settingsBtn = e.target.closest('.folder-settings-btn');
+                if (settingsBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const id = settingsBtn.dataset.folderId;
+                    const name = settingsBtn.dataset.folderName;
+                    const renameForm = document.getElementById('rename-folder-form');
+                    const deleteForm = document.getElementById('delete-folder-form');
+                    const nameInput = document.getElementById('edit-folder-name');
+                    
+                    if(renameForm) renameForm.action = `/folders/${id}`;
+                    if(deleteForm) deleteForm.action = `/folders/${id}`;
+                    if(nameInput) nameInput.value = name;
+                    
+                    toggleModal('manage-folder-modal', true);
+                    return;
+                }
+
+                // Bulk Move Button
+                const bulkMoveBtn = e.target.closest('#bulk-move-btn');
+                if (bulkMoveBtn) {
+                     if (selectedVideos.size === 0) return;
+                     toggleModal('move-folder-modal', true);
+                     return;
+                }
+                
+                // Select Folder in Move Modal
+                const selectFolderBtn = e.target.closest('.select-folder-btn');
+                if (selectFolderBtn) {
+                    const folderId = selectFolderBtn.dataset.folderId;
+                    const form = document.getElementById('bulk-action-form');
+                    
+                    form.querySelector('#bulk-action-input').value = 'move';
+                    form.querySelector('#bulk-folder-id-input').value = folderId;
+
+                    // Clear old inputs
+                    form.querySelectorAll('input[name="video_ids[]"]').forEach(el => el.remove());
+                    
+                    // Add new inputs
+                    selectedVideos.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'video_ids[]';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+
+                    form.submit();
+                    return;
+                }
+                
+                // Close Modals on Backdrop Click
+                if (e.target.id === 'create-folder-modal') toggleModal('create-folder-modal', false);
+                if (e.target.id === 'manage-folder-modal') toggleModal('manage-folder-modal', false);
+                if (e.target.id === 'move-folder-modal') toggleModal('move-folder-modal', false);
+            });
+
+            // Close buttons specific IDs (Keep existing or rely on delegation? Delegation covers logic but explicit IDs are fine)
+            document.getElementById('close-manage-folder')?.addEventListener('click', () => toggleModal('manage-folder-modal', false));
+            document.getElementById('cancel-move-folder')?.addEventListener('click', () => toggleModal('move-folder-modal', false));
+        });
+    </script>
 </x-app-layout>

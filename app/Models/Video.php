@@ -8,8 +8,8 @@ use App\Models\Setting;
 
 class Video extends Model
 {
-    use HasFactory; 
-   protected $fillable = [
+    use HasFactory;
+    protected $fillable = [
         'user_id',
         'title',
         'original_link',
@@ -19,9 +19,15 @@ class Video extends Model
         'is_safe_content',
         'thumbnail_path',
         'is_ai_checked',
+        'folder_id',
     ];
 
-     /**
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
+    }
+
+    /**
      * The accessors to append to the model's array form.
      *
      * @var array
@@ -79,17 +85,17 @@ class Video extends Model
             if ($mp4Response->successful()) {
                 return true;
             }
-            
+
             // If MP4 not found, try MOV format
             $movUrl = "https://cdn.videy.co/{$this->video_code}.mov";
             $movResponse = \Illuminate\Support\Facades\Http::timeout(5)->head($movUrl);
             if ($movResponse->successful()) {
                 return true;
             }
-            
+
             // Both formats return 404, video is not available
             return false;
-            
+
         } catch (\Exception $e) {
             // If there's a connection error, assume video might be temporarily unavailable
             // Return true to avoid false positives
@@ -110,36 +116,36 @@ class Video extends Model
         ];
     }
 
-    
-// fitur untuk views
-public function views()
-{
-    return $this->hasMany(View::class);
-}
 
-public function user()
-{
-    return $this->belongsTo(User::class);
-}
+    // fitur untuk views
+    public function views()
+    {
+        return $this->hasMany(View::class);
+    }
 
-public function reports()
-{
-    return $this->hasMany(VideoReport::class);
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-public function pendingReports()
-{
-    return $this->hasMany(VideoReport::class)->where('status', 'pending');
-}
+    public function reports()
+    {
+        return $this->hasMany(VideoReport::class);
+    }
 
-public function telegramBroadcast()
-{
-    return $this->hasOne(TelegramBroadcastVideo::class);
-}
+    public function pendingReports()
+    {
+        return $this->hasMany(VideoReport::class)->where('status', 'pending');
+    }
 
-public function hasBeenBroadcasted(): bool
-{
-    return $this->telegramBroadcast()->exists();
-}
+    public function telegramBroadcast()
+    {
+        return $this->hasOne(TelegramBroadcastVideo::class);
+    }
+
+    public function hasBeenBroadcasted(): bool
+    {
+        return $this->telegramBroadcast()->exists();
+    }
 
 }

@@ -27,6 +27,9 @@ use App\Filament\Widgets\TodayHighlights;
 use App\Filament\Widgets\DailyIncomeChart;
 use App\Filament\Widgets\ViewerSourceStats;
 use App\Filament\Widgets\ViewerSourceChart;
+use App\Filament\Widgets\FilteredDashboardStats;
+use App\Filament\Widgets\FilteredFinancialOverview;
+use App\Filament\Widgets\FilteredMonthlyStatsChart;
 // ===============================================
 
 // Import your custom middleware
@@ -62,6 +65,9 @@ class AdminPanelProvider extends PanelProvider
                 MonthlyStatsChart::class,
                 PendingWithdrawals::class,
                 DailyIncomeChart::class,
+                FilteredDashboardStats::class,
+                FilteredFinancialOverview::class,
+                FilteredMonthlyStatsChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

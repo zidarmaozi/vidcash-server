@@ -30,5 +30,8 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('userNotifications', $notifications)->with('unreadNotificationsCount', $unreadCount);
             }
         });
+
+        // Register Observers
+        \App\Models\User::observe(\App\Observers\UserObserver::class);
     }
 }
