@@ -23,7 +23,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
         @include('layouts.navigation')
 
         <!-- Page Heading -->
@@ -36,9 +36,22 @@
         @endisset
 
         <!-- Page Content -->
-        <main>
+        <main class="flex-grow">
             {{ $slot }}
         </main>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            &copy; {{ date('Y') }} {{ config('app.name', 'Vidcash') }}. All rights reserved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 </body>
 
