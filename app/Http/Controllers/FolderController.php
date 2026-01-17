@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Folder;
-use App\Models\Video;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use App\Services\CacheKeyService;
@@ -25,7 +24,7 @@ class FolderController extends Controller
             return back()->with('error', 'Batasan folder tercapai. Maksimal ' . $user->max_folders . ' folder.');
         }
 
-        $slug = $this->generateUniqueSlug($request->name);
+        $slug = $this->generateUniqueSlug();
 
         $request->user()->folders()->create([
             'name' => $request->name,
@@ -46,32 +45,22 @@ class FolderController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $oldSlug = $folder->slug;
-        $newName = $request->name;
-
-        // Update slug if name changes
-        if ($folder->name !== $newName) {
-            $folder->slug = $this->generateUniqueSlug($newName);
-        }
-
-        $folder->name = $newName;
+        $folder->name = $request->name;
+        // Slug is NOT updated when name changes
         $folder->save();
 
-        // Invalidate cache for BOTH old and new slugs to be safe
-        Cache::forget(CacheKeyService::folderVideos($oldSlug));
-        if ($oldSlug !== $folder->slug) {
-            Cache::forget(CacheKeyService::folderVideos($folder->slug));
-        }
+        // Invalidate cache for the slug (since folder name in response might have changed)
+        Cache::forget(CacheKeyService::folderVideos($folder->slug));
 
         return back()->with('success', 'Folder berhasil diperbarui.');
     }
 
-    private function generateUniqueSlug(string $name): string
+    private function generateUniqueSlug(): string
     {
-        $slug = Str::slug($name) . '-' . Str::random(6);
-        while (Folder::where('slug', $slug)->exists()) {
-            $slug = Str::slug($name) . '-' . Str::random(6);
-        }
+        do {
+            $slug = Str::random(10);
+        } while (Folder::where('slug', $slug)->exists());
+
         return $slug;
     }
 
