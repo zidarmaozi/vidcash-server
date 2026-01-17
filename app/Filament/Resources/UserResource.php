@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class UserResource extends Resource
 {
@@ -116,6 +117,18 @@ class UserResource extends Resource
                     ->label('Detail'),
                 Tables\Actions\EditAction::make()
                     ->label('Edit'),
+                Action::make('login_as')
+                    ->label('Login sbg User')
+                    ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Login sebagai user ini?')
+                    ->modalDescription('Anda akan login sebagai user ini dan diarahkan ke dashboard mereka. Sesi admin Anda saat ini akan digantikan.')
+                    ->modalSubmitActionLabel('Ya, Login')
+                    ->action(function (User $record) {
+                        Auth::login($record);
+                        return redirect()->route('dashboard');
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
