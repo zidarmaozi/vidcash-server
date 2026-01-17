@@ -39,14 +39,14 @@ class ServiceController extends Controller
 
     public function getFolderVideos($folderSlug)
     {
-        // Cache indefinitely until invalidated by CRUD operations
-        $folderVideos = Cache::rememberForever(CacheKeyService::folderVideos($folderSlug), function () use ($folderSlug) {
-            $folder = Folder::where('slug', $folderSlug)->first();
+        $folder = Folder::where('slug', $folderSlug)->first();
 
-            if (!$folder) {
-                return [];
-            }
+        if (!$folder) {
+            return response()->json(['message' => 'Folder not found'], 404);
+        }
 
+        // Cache the video list with the existing key structure
+        $videos = Cache::rememberForever(CacheKeyService::folderVideos($folderSlug), function () use ($folder) {
             return $folder->videos()
                 ->select('id', 'video_code', 'title', 'thumbnail_path')
                 ->where('is_active', true)
@@ -54,7 +54,11 @@ class ServiceController extends Controller
                 ->get();
         });
 
-        return response()->json($folderVideos);
+        return response()->json([
+            'name' => $folder->name,
+            'slug' => $folder->slug,
+            'videos' => $videos
+        ]);
     }
 
     public function getRelatedVideos($videoCode = null)
