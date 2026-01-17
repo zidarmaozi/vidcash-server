@@ -38,7 +38,7 @@ class FolderController extends Controller
 
     public function update(Request $request, Folder $folder)
     {
-        if ($folder->user_id !== auth()->id()) {
+        if ((int) $folder->user_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -82,7 +82,7 @@ class FolderController extends Controller
      */
     public function destroy(Folder $folder)
     {
-        if ($folder->user_id !== auth()->id()) {
+        if ((int) $folder->user_id !== (int) auth()->id()) {
             abort(403);
         }
 
