@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Setting;
 
 class Folder extends Model
 {
@@ -29,6 +30,12 @@ class Folder extends Model
 
     public function getPublicLinkAttribute()
     {
+        $domain = Setting::where('key', 'folder_domain')->value('value');
+
+        if ($domain) {
+            return "https://{$domain}/{$this->slug}";
+        }
+
         return url('/f/' . $this->slug);
     }
 }

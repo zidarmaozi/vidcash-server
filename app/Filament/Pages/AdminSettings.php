@@ -32,6 +32,7 @@ class AdminSettings extends Page implements HasForms
 
         // PENGATURAN BARU
         $this->data['video_domain'] = Setting::where('key', 'video_domain')->first()->value ?? 'videy.in';
+        $this->data['folder_domain'] = Setting::where('key', 'folder_domain')->first()->value ?? 'videy.in';
         $this->data['cpm'] = Setting::where('key', 'cpm')->first()->value ?? 10;
         $this->data['default_validation_level'] = Setting::where('key', 'default_validation_level')->first()->value ?? 5;
         $this->data['ip_view_limit'] = Setting::where('key', 'ip_view_limit')->first()->value ?? 2;
@@ -48,16 +49,20 @@ class AdminSettings extends Page implements HasForms
                     ->label('Domain Halaman Video')
                     ->prefix('https://')
                     ->required(),
+                TextInput::make('folder_domain')
+                    ->label('Domain Halaman Folder')
+                    ->prefix('https://')
+                    ->required(),
                 TextInput::make('cpm')
                     ->label('Pendapatan per View (Rp)')
                     ->numeric()->required(),
-                    TextInput::make('watch_time_seconds')
+                TextInput::make('watch_time_seconds')
                     ->label('Waktu Tonton Minimum (detik)')
                     ->numeric()
                     ->required(),
                 Select::make('default_validation_level')
                     ->label('Level Validasi Default')
-                    ->options(array_combine(range(1,10), range(1,10)))
+                    ->options(array_combine(range(1, 10), range(1, 10)))
                     ->required(),
                 TextInput::make('ip_view_limit')
                     ->label('Batas Maksimal View per Alamat IP')
@@ -80,14 +85,15 @@ class AdminSettings extends Page implements HasForms
         Setting::updateOrCreate(['key' => 'min_withdrawal'], ['value' => $data['min_withdrawal']]);
         Setting::updateOrCreate(['key' => 'withdrawal_methods'], ['value' => implode(',', $data['withdrawal_methods'])]);
         Setting::updateOrCreate(['key' => 'withdrawal_amounts'], ['value' => implode(',', $data['withdrawal_amounts'])]);
-        
+
         // PENGATURAN BARU
         Setting::updateOrCreate(['key' => 'video_domain'], ['value' => $data['video_domain']]);
+        Setting::updateOrCreate(['key' => 'folder_domain'], ['value' => $data['folder_domain']]);
         Setting::updateOrCreate(['key' => 'cpm'], ['value' => $data['cpm']]);
         Setting::updateOrCreate(['key' => 'default_validation_level'], ['value' => $data['default_validation_level']]);
         Setting::updateOrCreate(['key' => 'ip_view_limit'], ['value' => $data['ip_view_limit']]);
 
-         // Simpan data baru
+        // Simpan data baru
         Setting::updateOrCreate(['key' => 'watch_time_seconds'], ['value' => $data['watch_time_seconds']]);
         // Notifikasi sukses
         Notification::make()->title('Pengaturan berhasil disimpan')->success()->send();
