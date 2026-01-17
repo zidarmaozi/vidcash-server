@@ -69,6 +69,20 @@ class RegisteredUserController extends Controller
             // Bonus for Referrer: +1 Folder Limit AND +1 Video per Folder Limit
             $referrer->increment('max_folders');
             $referrer->increment('max_videos_per_folder');
+
+            // Notify Referrer
+            \App\Models\Notification::create([
+                'user_id' => $referrer->id,
+                'type' => 'info',
+                'message' => "Selamat! Teman Anda {$request->name} baru saja mendaftar menggunakan kode referral Anda. Limit akun Anda telah ditingkatkan! (+1 Folder & +1 Video/Folder)"
+            ]);
+
+            // Notify Referee (New User)
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'info',
+                'message' => "Selamat Datang! Anda mendaftar melalui referral code. Bonus saldo dan limit ekstra telah ditambahkan ke akun Anda."
+            ]);
         }
 
         event(new Registered($user));
