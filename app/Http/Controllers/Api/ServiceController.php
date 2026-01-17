@@ -32,6 +32,7 @@ class ServiceController extends Controller
                 'folder' => $video && $video->folder ? [
                     'name' => $video->folder->name,
                     'slug' => $video->folder->slug,
+                    'video_count' => $video->folder->videos()->where('is_active', true)->count(),
                 ] : null,
             ]);
         });
