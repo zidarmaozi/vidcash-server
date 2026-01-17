@@ -14,7 +14,7 @@ Route::get('/now', function () {
 
 Route::get('/service/settings/{videoCode?}', [ServiceController::class, 'getSettings']);
 Route::get('/service/related-videos/{videoCode?}', [ServiceController::class, 'getRelatedVideos']);
-Route::get('/service/folder-videos/{folderSlug}', [ServiceController::class, 'getFolderVideos']);
+Route::get('/service/folder/{folderSlug}', [ServiceController::class, 'getFolderVideos']);
 Route::post('/service/record-view', [ServiceController::class, 'recordView']);
 Route::get('/video-info/{video:video_code}', [ServiceController::class, 'getVideoInfo']);
 
