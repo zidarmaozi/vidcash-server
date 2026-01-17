@@ -42,4 +42,14 @@ class CacheKeyService
     {
         return "folder_videos_{$slug}";
     }
+
+    /**
+     * Cache key for recommended folders.
+     *
+     * @return string
+     */
+    public static function recommendedFolders(): string
+    {
+        return "recommended_folders";
+    }
 }

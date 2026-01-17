@@ -77,6 +77,27 @@ class ServiceController extends Controller
         return response()->json($relatedVideos);
     }
 
+    public function getRecommendedFolders()
+    {
+        // Cache for 12 hours
+        $recommendedFolders = Cache::remember(CacheKeyService::recommendedFolders(), 43200, function () {
+            // "latest 5 folder with minimum videos is 6"
+            return Folder::select('id', 'name', 'slug')
+                ->where('is_public', true)
+                ->has('videos', '>=', 6)
+                ->withCount([
+                    'videos' => function ($query) {
+                        $query->where('is_active', true);
+                    }
+                ])
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        });
+
+        return response()->json($recommendedFolders);
+    }
+
     // Menerima perintah untuk mencatat view dari service Node.js
     public function recordView(Request $request)
     {
