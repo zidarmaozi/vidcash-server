@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
 
@@ -22,7 +22,7 @@
                         {{ __('Upload Video') }}
                     </x-nav-link>
                     <x-nav-link :href="route('withdrawals.index')" :active="request()->routeIs('withdrawals.index')">
-                        {{ __('withdraw') }}
+                        {{ __('Withdraw') }}
                     </x-nav-link>
                     <x-nav-link :href="route('leaderboard.index')" :active="request()->routeIs('leaderboard.index')">
                         {{ __('Event') }}
@@ -30,8 +30,6 @@
                     <x-nav-link :href="route('referral.index')" :active="request()->routeIs('referral.index')">
                         {{ __('Undang Teman') }}
                     </x-nav-link>
-
-
                 </div>
             </div>
 
@@ -40,7 +38,7 @@
                 <!-- Tombol Notifikasi (Desktop) -->
                 <div class="relative me-4" x-data="{ open: false }">
                     <button id="notification-bell" @click="open = ! open; markNotificationsAsRead()"
-                        class="p-2 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none">
+                        class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -52,17 +50,17 @@
                         @endif
                     </button>
                     <!-- Dropdown Notifikasi -->
-                    <div x-show="open" @click.away="open = false"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                        <div class="p-3 font-bold border-b">Notifikasi</div>
+                    <div x-show="open" @click.away="open = false" style="display: none;"
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-50">
+                        <div class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">Notifikasi</div>
                         @if(isset($userNotifications))
                             @forelse($userNotifications as $notification)
-                                <div class="p-3 border-b hover:bg-gray-50 @if(!$notification->read_at) bg-indigo-50 @endif">
-                                    <p class="text-sm text-gray-700">{!! $notification->message !!}</p>
+                                <div class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">{!! $notification->message !!}</p>
                                     <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                                 </div>
                             @empty
-                                <p class="p-3 text-sm text-gray-500">Tidak ada notifikasi baru.</p>
+                                <p class="p-3 text-sm text-gray-500 dark:text-gray-400">Tidak ada notifikasi baru.</p>
                             @endforelse
                         @endif
                     </div>
@@ -72,7 +70,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
                             <div class="ms-1"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 20 20">
@@ -96,7 +94,7 @@
                 <!-- Tombol Notifikasi (Mobile) -->
                 <div class="relative" x-data="{ open: false }">
                     <button id="notification-bell" @click="open = ! open; markNotificationsAsRead()"
-                        class="inline-flex items-center p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
+                        class="inline-flex items-center p-2 rounded-full text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none transition duration-150 ease-in-out">
                         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -108,17 +106,17 @@
                         @endif
                     </button>
                     <!-- Dropdown Notifikasi Mobile -->
-                    <div x-show="open" @click.away="open = false"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                        <div class="p-3 font-bold border-b">Notifikasi</div>
+                     <div x-show="open" @click.away="open = false" style="display: none;"
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-50">
+                        <div class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">Notifikasi</div>
                         @if(isset($userNotifications))
                             @forelse($userNotifications as $notification)
-                                <div class="p-3 border-b hover:bg-gray-50 @if(!$notification->read_at) bg-indigo-50 @endif">
-                                    <p class="text-sm text-gray-700">{!! $notification->message !!}</p>
+                                <div class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">{!! $notification->message !!}</p>
                                     <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                                 </div>
                             @empty
-                                <p class="p-3 text-sm text-gray-500">Tidak ada notifikasi baru.</p>
+                                <p class="p-3 text-sm text-gray-500 dark:text-gray-400">Tidak ada notifikasi baru.</p>
                             @endforelse
                         @endif
                     </div>
@@ -126,7 +124,7 @@
 
                 <!-- Hamburger Button -->
                 <button @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -152,7 +150,7 @@
                 {{ __('Upload Video') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('withdrawals.index')" :active="request()->routeIs('withdrawals.index')">
-                {{ __('withdraw') }}
+                {{ __('Withdraw') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('leaderboard.index')" :active="request()->routeIs('leaderboard.index')">
                 {{ __('Event') }}
@@ -160,14 +158,12 @@
             <x-responsive-nav-link :href="route('referral.index')" :active="request()->routeIs('referral.index')">
                 {{ __('Undang Teman') }}
             </x-responsive-nav-link>
-
-
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
             <div class="mt-3 space-y-1">

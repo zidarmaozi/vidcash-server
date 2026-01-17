@@ -60,7 +60,16 @@ class RegisteredUserController extends Controller
             'referral_code' => $newReferralCode,
             'referred_by' => $referrer ? $referrer->id : null,
             'balance' => $initialBalance,
+            // Bonus limit for Referee: +1 Video per folder
+            'max_videos_per_folder' => $referrer ? 21 : 20,
+            'max_folders' => 10,
         ]);
+
+        if ($referrer) {
+            // Bonus for Referrer: +1 Folder Limit AND +1 Video per Folder Limit
+            $referrer->increment('max_folders');
+            $referrer->increment('max_videos_per_folder');
+        }
 
         event(new Registered($user));
 

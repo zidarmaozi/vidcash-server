@@ -7,7 +7,9 @@ use App\Models\Setting;
 use App\Models\Video;
 use App\Models\View;
 use App\Models\VideoReport;
+use App\Models\Folder;
 use Cache;
+use App\Services\CacheKeyService;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -16,9 +18,9 @@ class ServiceController extends Controller
     public function getSettings($videoCode = null)
     {
         // Cache response selama 10 menit (600 detik)
-        $cacheKey = $videoCode ? "settings_{$videoCode}" : "settings_default";
-        
-        return Cache::remember($cacheKey, 600, function() use ($videoCode) {
+        $cacheKey = CacheKeyService::settings($videoCode);
+
+        return Cache::remember($cacheKey, 600, function () use ($videoCode) {
             $watchTimeSetting = Setting::where('key', 'watch_time_seconds')->first();
             $video = $videoCode ? Video::where('video_code', $videoCode)->first() : null;
 
@@ -27,14 +29,38 @@ class ServiceController extends Controller
                 'is_available' => (bool) $video,
                 'is_active' => $video ? (bool) $video->is_active : false,
                 'video_title' => $video ? $video->title : null,
+                'folder' => $video && $video->folder ? [
+                    'name' => $video->folder->name,
+                    'slug' => $video->folder->slug,
+                ] : null,
             ]);
         });
+    }
+
+    public function getFolderVideos($folderSlug)
+    {
+        // Cache indefinitely until invalidated by CRUD operations
+        $folderVideos = Cache::rememberForever(CacheKeyService::folderVideos($folderSlug), function () use ($folderSlug) {
+            $folder = Folder::where('slug', $folderSlug)->first();
+
+            if (!$folder) {
+                return [];
+            }
+
+            return $folder->videos()
+                ->select('id', 'video_code', 'title', 'thumbnail_path')
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
+
+        return response()->json($folderVideos);
     }
 
     public function getRelatedVideos($videoCode = null)
     {
         // make the cache into 12 hours
-        $relatedVideos = Cache::remember("related_videos_{$videoCode}", 43200, function()  {
+        $relatedVideos = Cache::remember(CacheKeyService::relatedVideos($videoCode), 43200, function () {
             return Video::select('id', 'video_code', 'title', 'thumbnail_path')
                 ->where('is_active', true)
                 ->whereNotNull('thumbnail_path')
@@ -112,7 +138,7 @@ class ServiceController extends Controller
         // 4. Validation check
         $randomNumber = rand(1, 10);
         $validationPassed = $randomNumber <= $validationLevel;
-        
+
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
             View::create([
@@ -134,10 +160,10 @@ class ServiceController extends Controller
             // ], 422);
             return $mockResponse;
         }
-        
+
         // 5. View passed validation - record with income information
         $incomeAmount = $currentCpm; // 1 view = CPM amount
-        
+
         View::create([
             'video_id' => $video->id,
             'ip_address' => $ipAddress,
@@ -158,17 +184,6 @@ class ServiceController extends Controller
         //     'cpm_used' => $currentCpm
         // ]);
         return $mockResponse;
-    }
-
-    // Fungsi helper untuk mengambil setting
-    private function getIpLimit()
-    {
-        return (int) (Setting::where('key', 'ip_view_limit')->first()->value ?? 2);
-    }
-
-    private function getCpm()
-    {
-        return (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
     }
 
     // API endpoint untuk report video
@@ -201,5 +216,16 @@ class ServiceController extends Controller
         return response()->json([
             'message' => 'Report submitted successfully.'
         ]);
+    }
+
+    // Fungsi helper untuk mengambil setting
+    private function getIpLimit()
+    {
+        return (int) (Setting::where('key', 'ip_view_limit')->first()->value ?? 2);
+    }
+
+    private function getCpm()
+    {
+        return (int) (Setting::where('key', 'cpm')->first()->value ?? 10);
     }
 }

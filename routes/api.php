@@ -14,15 +14,16 @@ Route::get('/now', function () {
 
 Route::get('/service/settings/{videoCode?}', [ServiceController::class, 'getSettings']);
 Route::get('/service/related-videos/{videoCode?}', [ServiceController::class, 'getRelatedVideos']);
+Route::get('/service/folder-videos/{folderSlug}', [ServiceController::class, 'getFolderVideos']);
 Route::post('/service/record-view', [ServiceController::class, 'recordView']);
 Route::get('/video-info/{video:video_code}', [ServiceController::class, 'getVideoInfo']);
 
 Route::get('thumbnail-check', function () {
     $video = Video::whereNotNull('thumbnail_path')
-                ->where('is_safe_content', '!=', true)
-                ->where('is_ai_checked', '!=', true)
-                ->orderBy('created_at', 'desc')
-                ->first();
+        ->where('is_safe_content', '!=', true)
+        ->where('is_ai_checked', '!=', true)
+        ->orderBy('created_at', 'desc')
+        ->first();
 
     return response()->json([
         'is_available' => $video ? true : false,

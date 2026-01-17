@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Models\Folder;
+use Illuminate\Support\Facades\Cache;
+use App\Services\CacheKeyService;
 
 class VideoController extends Controller
 {
@@ -235,6 +238,12 @@ class VideoController extends Controller
         if (Auth::id() !== $video->user_id) {
             abort(403, 'Unauthorized action.');
         }
+        if ($video->folder_id) {
+            $folder = Folder::find($video->folder_id);
+            if ($folder) {
+                Cache::forget(CacheKeyService::folderVideos($folder->slug));
+            }
+        }
         $video->delete();
         return redirect()->route('videos.index')->with('success', 'Video berhasil dihapus.');
     }
@@ -258,8 +267,20 @@ class VideoController extends Controller
         $videos = Auth::user()->videos()->whereIn('id', $videoIds);
 
         if ($validated['action'] === 'delete') {
-            $videos->delete();
-            return back()->with('success', count($videoIds) . ' link berhasil dihapus.');
+            // Invalidate cache for folders where videos are being deleted
+            $videosToDelete = (clone $videos)->get();
+            $folderIds = $videosToDelete->pluck('folder_id')->unique()->filter();
+
+            if ($folderIds->isNotEmpty()) {
+                $folders = Folder::whereIn('id', $folderIds)->get();
+                foreach ($folders as $folder) {
+                    Cache::forget(CacheKeyService::folderVideos($folder->slug));
+                }
+            }
+
+            $deletedCount = $videos->delete();
+
+            return back()->with('success', $deletedCount . ' link berhasil dihapus.');
         }
 
         if ($validated['action'] === 'move') {
@@ -267,8 +288,37 @@ class VideoController extends Controller
                 'folder_id' => 'required|exists:folders,id,user_id,' . Auth::id(),
             ]);
 
-            $videos->update(['folder_id' => $request->folder_id]);
-            return back()->with('success', count($videoIds) . ' link berhasil dipindahkan.');
+            // Invalidate OLD folders cache
+            $videosToMove = (clone $videos)->get();
+            $oldFolderIds = $videosToMove->pluck('folder_id')->unique()->filter();
+
+            if ($oldFolderIds->isNotEmpty()) {
+                $oldFolders = Folder::whereIn('id', $oldFolderIds)->get();
+                foreach ($oldFolders as $folder) {
+                    Cache::forget(CacheKeyService::folderVideos($folder->slug));
+                }
+            }
+
+            // Invalidate NEW folder cache
+            $newFolder = Folder::find($request->folder_id);
+
+            // Check usage limit
+            $user = Auth::user();
+            $newFolderCount = $newFolder->videos()->count();
+            $videosToMoveCount = count($videoIds); // Using requested IDs count as upper bound, or actual query count?
+            // Better to use actual count from DB for accuracy
+            $videosToMoveCount = (clone $videos)->count();
+
+            if (($newFolderCount + $videosToMoveCount) > $user->max_videos_per_folder) {
+                return back()->with('error', 'Folder tujuan penuh. Maksimal ' . $user->max_videos_per_folder . ' video per folder.');
+            }
+
+            if ($newFolder) {
+                Cache::forget(CacheKeyService::folderVideos($newFolder->slug));
+            }
+
+            $movedCount = $videos->update(['folder_id' => $request->folder_id]);
+            return back()->with('success', $movedCount . ' link berhasil dipindahkan.');
         }
 
         return back()->with('error', 'Aksi tidak valid.');

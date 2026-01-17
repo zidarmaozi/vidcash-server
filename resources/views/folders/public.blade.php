@@ -46,7 +46,7 @@
                             <!-- Thumbnail -->
                             <div class="relative aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
                                 @if($video->thumbnail_url)
-                                    <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}"
+                                    <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" loading="lazy"
                                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                                 @else
                                     <div class="flex items-center justify-center h-full">

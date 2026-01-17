@@ -27,73 +27,87 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            TextInput::make('name')
-                ->required()
-                ->maxLength(255),
-            TextInput::make('email')
-                ->email()
-                ->required()
-                ->maxLength(255),
-            Select::make('role')
-                ->options([
-                    'admin' => 'Admin',
-                    'user' => 'User',
-                ])
-                ->required(),
-            TextInput::make('password')
-                ->password()
-                ->required(fn (string $operation): bool => $operation === 'create') // Wajib diisi hanya saat membuat user baru
-                ->dehydrateStateUsing(fn (string $state): string => Hash::make($state)) // Otomatis hash password
-                ->dehydrated(fn (?string $state): bool => filled($state)) // Hanya simpan jika diisi
-                ->maxLength(255),
+    {
+        return $form
+            ->schema([
+                TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+                TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->maxLength(255),
+                Select::make('role')
+                    ->options([
+                        'admin' => 'Admin',
+                        'user' => 'User',
+                    ])
+                    ->required(),
+                TextInput::make('password')
+                    ->password()
+                    ->required(fn(string $operation): bool => $operation === 'create') // Wajib diisi hanya saat membuat user baru
+                    ->dehydrateStateUsing(fn(string $state): string => Hash::make($state)) // Otomatis hash password
+                    ->dehydrated(fn(?string $state): bool => filled($state)) // Hanya simpan jika diisi
+                    ->maxLength(255),
 
-        // TAMBAHKAN FIELD INI
-            Select::make('validation_level')
-                ->label('Level Validasi Khusus')
-                ->options(array_combine(range(1,10), range(1,10)))
-                ->helperText('Kosongkan untuk menggunakan pengaturan default dari admin.'),
-        ]);
-}
+                // TAMBAHKAN FIELD INI
+                Select::make('validation_level')
+                    ->label('Level Validasi Khusus')
+                    ->options(array_combine(range(1, 10), range(1, 10)))
+                    ->helperText('Kosongkan untuk menggunakan pengaturan default dari admin.'),
+
+                Forms\Components\Section::make('Batasan Pengguna')
+                    ->schema([
+                        TextInput::make('max_folders')
+                            ->label('Batasan Jumlah Folder')
+                            ->numeric()
+                            ->default(10)
+                            ->required(),
+                        TextInput::make('max_videos_per_folder')
+                            ->label('Batasan Video Per Folder')
+                            ->numeric()
+                            ->default(20)
+                            ->required(),
+                    ])->columns(2),
+            ]);
+    }
     public static function table(Table $table): Table
     {
         return $table
-             ->columns([
-    Tables\Columns\TextColumn::make('name')
-        ->searchable(),
-    Tables\Columns\TextColumn::make('email')
-        ->searchable(),
-    // Tambahkan dua kolom ini
-    Tables\Columns\TextColumn::make('balance')
-        ->money('IDR') // Format sebagai Rupiah
-        ->sortable(),
-    Tables\Columns\TextColumn::make('total_withdrawn')
-        ->label('Total Ditarik')
-        ->money('IDR')
-        ->sortable(),
-    Tables\Columns\TextColumn::make('videos_count')
-        ->label('Total Video')
-        ->counts('videos')
-        ->sortable()
-        ->color('info'),
-    Tables\Columns\TextColumn::make('role')
-        ->badge()
-        ->color(fn (string $state): string => match ($state) {
-            'admin' => 'danger',
-            'user' => 'success',
-        }),
-         // TAMBAHKAN KOLOM INI
-      Tables\Columns\TextColumn::make('validation_level')
-        ->label('Level Validasi')
-        ->sortable()
-        ->placeholder('Default'), // Tampilkan 'Default' jika nilainya kosong
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                // Tambahkan dua kolom ini
+                Tables\Columns\TextColumn::make('balance')
+                    ->money('IDR') // Format sebagai Rupiah
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('total_withdrawn')
+                    ->label('Total Ditarik')
+                    ->money('IDR')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('videos_count')
+                    ->label('Total Video')
+                    ->counts('videos')
+                    ->sortable()
+                    ->color('info'),
+                Tables\Columns\TextColumn::make('role')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'admin' => 'danger',
+                        'user' => 'success',
+                    }),
+                // TAMBAHKAN KOLOM INI
+                Tables\Columns\TextColumn::make('validation_level')
+                    ->label('Level Validasi')
+                    ->sortable()
+                    ->placeholder('Default'), // Tampilkan 'Default' jika nilainya kosong
 
-    Tables\Columns\TextColumn::make('created_at')
-        ->dateTime()
-        ->sortable(),
-])
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable(),
+            ])
             ->filters([
                 //
             ])
