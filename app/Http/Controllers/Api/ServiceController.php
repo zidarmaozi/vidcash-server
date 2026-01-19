@@ -153,9 +153,13 @@ class ServiceController extends Controller
                 break;
             case '2':
                 $viaResult = 'related';
-                $validationLevel -= 1;
+                $validationLevel -= 2;
                 break;
             case '3':
+                $viaResult = 'folder';
+                $validationLevel -= 1;
+                break;
+            case '4':
                 $viaResult = 'telegram';
                 $validationLevel = 0;
                 break;

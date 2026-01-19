@@ -21,22 +21,25 @@ class ViewerSourceChart extends ChartWidget
             $telegramCount = View::where('via', 'telegram')->count();
             $directCount = View::where('via', 'direct')->count();
             $relatedCount = View::where('via', 'related')->count();
+            $folderCount = View::where('via', 'folder')->count();
             $unknownCount = View::whereNull('via')->count();
 
             return [
                 'datasets' => [
                     [
                         'label' => 'Viewer Source',
-                        'data' => [$telegramCount, $directCount, $relatedCount, $unknownCount],
+                        'data' => [$telegramCount, $directCount, $relatedCount, $folderCount, $unknownCount],
                         'backgroundColor' => [
                             'rgb(59, 130, 246)',   // Blue - Telegram
                             'rgb(34, 197, 94)',    // Green - Direct
                             'rgb(251, 146, 60)',   // Orange - Related
+                            'rgb(251, 146, 60)',   // Orange - Folder
                             'rgb(156, 163, 175)',  // Gray - Unknown
                         ],
                         'borderColor' => [
                             'rgb(59, 130, 246)',
                             'rgb(34, 197, 94)',
+                            'rgb(251, 146, 60)',
                             'rgb(251, 146, 60)',
                             'rgb(156, 163, 175)',
                         ],
@@ -47,6 +50,7 @@ class ViewerSourceChart extends ChartWidget
                     '📱 Telegram (' . $telegramCount . ')',
                     '🔗 Direct (' . $directCount . ')',
                     '🎬 Related (' . $relatedCount . ')',
+                    '📁 Folder (' . $folderCount . ')',
                     '❓ Unknown (' . $unknownCount . ')',
                 ],
             ];

@@ -41,7 +41,7 @@ class SendVideoToTelegram extends Command
     {
         // Get chat ID from option or config
         $chatId = $this->option('chat-id') ?: config('services.telegram.chat_id');
-        
+
         if (!$chatId) {
             $this->error('❌ Chat ID is required!');
             $this->info('Please provide --chat-id option or set TELEGRAM_CHAT_ID in .env');
@@ -71,7 +71,7 @@ class SendVideoToTelegram extends Command
 
         // Prepare message
         $message = "🎬 *{$video->title}*\n";
-        $message .= "💦 {$video->generated_link}?v=3";
+        $message .= "💦 {$video->generated_link}?v=4";
 
         $this->info("\n📤 Sending to Telegram...");
 
