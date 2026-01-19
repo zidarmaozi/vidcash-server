@@ -10,24 +10,28 @@ use Illuminate\Support\Facades\DB;
 class MonthlyStatsChart extends ChartWidget
 {
     protected static ?string $heading = 'Trend Views & Pendapatan';
-    
+
     protected static ?string $maxHeight = '300px';
-    
+
     protected static ?int $sort = 4;
+
+    protected int|string|array $columnSpan = 'full';
+
+    protected static bool $isLazy = true;
 
     protected function getData(): array
     {
         // Cache for 10 minutes for better performance
-        return cache()->remember('monthly_stats_chart_30d', 600, function() {
+        return cache()->remember('monthly_stats_chart_30d', 600, function () {
             // Get data for last 30 days
             $startDate = Carbon::now()->subDays(30);
-            
+
             $data = View::select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('COUNT(*) as total_views'),
-                    DB::raw('SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as validated_views'),
-                    DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
-                )
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as total_views'),
+                DB::raw('SUM(CASE WHEN validation_passed = 1 THEN 1 ELSE 0 END) as validated_views'),
+                DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
+            )
                 ->where('created_at', '>=', $startDate)
                 ->groupBy('date')
                 ->orderBy('date', 'asc')
@@ -61,7 +65,7 @@ class MonthlyStatsChart extends ChartWidget
                         'yAxisID' => 'y1',
                     ]
                 ],
-                'labels' => $data->pluck('date')->map(fn ($date) => Carbon::parse($date)->format('d M'))->all(),
+                'labels' => $data->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d M'))->all(),
             ];
         });
     }
@@ -106,12 +110,12 @@ class MonthlyStatsChart extends ChartWidget
 
     public function getDescription(): ?string
     {
-        return cache()->remember('monthly_stats_description', 600, function() {
+        return cache()->remember('monthly_stats_description', 600, function () {
             $startDate = Carbon::now()->subDays(30);
             $data = View::select(
-                    DB::raw('COUNT(*) as total_views'),
-                    DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
-                )
+                DB::raw('COUNT(*) as total_views'),
+                DB::raw('SUM(CASE WHEN income_generated = 1 THEN income_amount ELSE 0 END) as total_income')
+            )
                 ->where('created_at', '>=', $startDate)
                 ->first();
 

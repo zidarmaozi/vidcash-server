@@ -11,8 +11,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class TodayHighlights extends BaseWidget
 {
-    protected static ?int $sort = 0;
-    
+    protected static ?int $sort = 2;
+
     protected function getHeading(): ?string
     {
         return '📅 Today\'s Highlights';
@@ -40,19 +40,19 @@ class TodayHighlights extends BaseWidget
             ->sum('income_amount');
 
         // Calculate growth percentages
-        $userGrowth = $yesterdayUsers > 0 
+        $userGrowth = $yesterdayUsers > 0
             ? round((($todayUsers - $yesterdayUsers) / $yesterdayUsers) * 100, 1)
             : ($todayUsers > 0 ? 100 : 0);
 
-        $videoGrowth = $yesterdayVideos > 0 
+        $videoGrowth = $yesterdayVideos > 0
             ? round((($todayVideos - $yesterdayVideos) / $yesterdayVideos) * 100, 1)
             : ($todayVideos > 0 ? 100 : 0);
 
-        $viewGrowth = $yesterdayViews > 0 
+        $viewGrowth = $yesterdayViews > 0
             ? round((($todayViews - $yesterdayViews) / $yesterdayViews) * 100, 1)
             : ($todayViews > 0 ? 100 : 0);
 
-        $revenueGrowth = $yesterdayRevenue > 0 
+        $revenueGrowth = $yesterdayRevenue > 0
             ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1)
             : ($todayRevenue > 0 ? 100 : 0);
 

@@ -20,16 +20,11 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // === TAMBAHKAN INI UNTUK MENGIMPOR WIDGET ANDA ===
 use App\Filament\Widgets\DashboardStats;
-use App\Filament\Widgets\PendingWithdrawals;
 use App\Filament\Widgets\MonthlyStatsChart;
 use App\Filament\Widgets\QuickActions;
 use App\Filament\Widgets\TodayHighlights;
-use App\Filament\Widgets\DailyIncomeChart;
-use App\Filament\Widgets\ViewerSourceStats;
 use App\Filament\Widgets\ViewerSourceChart;
-use App\Filament\Widgets\FilteredDashboardStats;
-use App\Filament\Widgets\FilteredFinancialOverview;
-use App\Filament\Widgets\FilteredMonthlyStatsChart;
+use App\Filament\Widgets\UserGrowthChart;
 // ===============================================
 
 // Import your custom middleware
@@ -60,14 +55,9 @@ class AdminPanelProvider extends PanelProvider
                 QuickActions::class,
                 TodayHighlights::class,
                 DashboardStats::class,
-                ViewerSourceStats::class,
-                ViewerSourceChart::class,
                 MonthlyStatsChart::class,
-                PendingWithdrawals::class,
-                DailyIncomeChart::class,
-                FilteredDashboardStats::class,
-                FilteredFinancialOverview::class,
-                FilteredMonthlyStatsChart::class,
+                UserGrowthChart::class,
+                ViewerSourceChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

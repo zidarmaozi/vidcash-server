@@ -10,10 +10,10 @@ use Filament\Widgets\Widget;
 class QuickActions extends Widget
 {
     protected static string $view = 'filament.widgets.quick-actions';
-    
-    protected int | string | array $columnSpan = 'full';
-    
-    protected static ?int $sort = 2;
+
+    protected int|string|array $columnSpan = 'full';
+
+    protected static ?int $sort = 1;
 
     protected function getViewData(): array
     {
@@ -27,7 +27,7 @@ class QuickActions extends Widget
             ->count();
 
         $actionItems = [];
-        
+
         if ($pendingWithdrawals > 0) {
             $actionItems[] = [
                 'priority' => 'danger',
@@ -38,7 +38,7 @@ class QuickActions extends Widget
                 'url' => '/admin/withdrawals',
             ];
         }
-        
+
         if ($pendingReports > 0) {
             $actionItems[] = [
                 'priority' => 'danger',
@@ -49,7 +49,7 @@ class QuickActions extends Widget
                 'url' => '/admin/video-reports',
             ];
         }
-        
+
         if ($videosWithoutThumbnail > 0) {
             $actionItems[] = [
                 'priority' => 'warning',
@@ -60,7 +60,7 @@ class QuickActions extends Widget
                 'url' => '/admin/videos',
             ];
         }
-        
+
         if ($unsafeActiveVideos > 0) {
             $actionItems[] = [
                 'priority' => 'danger',
