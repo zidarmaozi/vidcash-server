@@ -157,7 +157,8 @@ class ServiceController extends Controller
                 break;
             case '3':
                 $viaResult = 'folder';
-                $validationLevel -= 1;
+                // for early release, validation level will not changed
+                // $validationLevel -= 1;
                 break;
             case '4':
                 $viaResult = 'telegram';
@@ -205,7 +206,7 @@ class ServiceController extends Controller
         ]);
 
         // 6. Update user balance
-        $owner->balance += $incomeAmount;
+        $owner->balance = $owner->balance !== null ? $owner->balance + $incomeAmount : $incomeAmount;
         $owner->save();
 
         // return response()->json([
