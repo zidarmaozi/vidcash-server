@@ -34,24 +34,44 @@ class VideoController extends Controller
             }
         ]);
 
+        $folders = collect(); // Default empty
+        $currentFolder = null;
+
         if ($folderId) {
+            // Folder View: Videos inside folder
+            $currentFolder = $user->folders()->withCount('videos')->findOrFail($folderId);
             $videosQuery->where('folder_id', $folderId);
+            // No subfolders in this system
+        } else {
+            // Root View
+            if ($search) {
+                // Global Search mode: Find any video by this user matching query
+                $videosQuery->where('video_code', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%");
+                // In search mode, we don't show folders (or we could search folders too, but keeping it simple for now)
+            } else {
+                // Explorer Mode: Show Folders + Uncategorized Videos
+                $videosQuery->whereNull('folder_id');
+                $videosQuery->whereNull('folder_id');
+                $folders = $user->folders()->withCount('videos')->get();
+            }
         }
 
-        if ($search) {
-            // Pencarian sekarang menggunakan accessor, jadi kita cari di video_code
-            $videosQuery->where('video_code', 'like', "%{$search}%");
-        }
+        // Always fetch all folders for the "Move" modal
+        $allFolders = $user->folders()->withCount('videos')->get();
 
         $videosQuery->orderBy($sortBy, $sortDir);
 
         $videos = $videosQuery->paginate($perPage);
-        $folders = $user->folders()->get();
+
+        $totalFolderCount = $user->folders()->count();
 
         return view('videos.index', [
             'videos' => $videos,
             'folders' => $folders,
-            'currentFolder' => $folderId ? $folders->find($folderId) : null,
+            'allFolders' => $allFolders,
+            'totalFolderCount' => $totalFolderCount,
+            'currentFolder' => $currentFolder,
             'filters' => [
                 'search' => $search,
                 'sort_by' => $sortBy,
@@ -285,7 +305,7 @@ class VideoController extends Controller
 
         if ($validated['action'] === 'move') {
             $request->validate([
-                'folder_id' => 'required|exists:folders,id,user_id,' . Auth::id(),
+                'folder_id' => 'nullable|exists:folders,id,user_id,' . Auth::id(),
             ]);
 
             // Invalidate OLD folders cache
@@ -299,25 +319,26 @@ class VideoController extends Controller
                 }
             }
 
-            // Invalidate NEW folder cache
-            $newFolder = Folder::find($request->folder_id);
+            // Invalidate NEW folder cache (if moving to a folder)
+            $newFolder = null;
+            if ($request->folder_id) {
+                $newFolder = Folder::find($request->folder_id);
 
-            // Check usage limit
-            $user = Auth::user();
-            $newFolderCount = $newFolder->videos()->count();
-            $videosToMoveCount = count($videoIds); // Using requested IDs count as upper bound, or actual query count?
-            // Better to use actual count from DB for accuracy
-            $videosToMoveCount = (clone $videos)->count();
+                // Check usage limit ONLY if moving to a specific folder
+                $user = Auth::user();
+                $newFolderCount = $newFolder->videos()->count();
+                $videosToMoveCount = (clone $videos)->count();
 
-            if (($newFolderCount + $videosToMoveCount) > $user->max_videos_per_folder) {
-                return back()->with('error', 'Folder tujuan penuh. Maksimal ' . $user->max_videos_per_folder . ' video per folder.');
+                if (($newFolderCount + $videosToMoveCount) > $user->max_videos_per_folder) {
+                    return back()->with('error', 'Folder tujuan penuh. Maksimal ' . $user->max_videos_per_folder . ' video per folder.');
+                }
+
+                if ($newFolder) {
+                    Cache::forget(CacheKeyService::folderVideos($newFolder->slug));
+                }
             }
 
-            if ($newFolder) {
-                Cache::forget(CacheKeyService::folderVideos($newFolder->slug));
-            }
-
-            $movedCount = $videos->update(['folder_id' => $request->folder_id]);
+            $movedCount = $videos->update(['folder_id' => $request->folder_id ?: null]);
             return back()->with('success', $movedCount . ' link berhasil dipindahkan.');
         }
 

@@ -1,116 +1,6 @@
 <x-app-layout>
     <main class="py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Folder Navigation -->
-            <div class="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                <div class="flex items-center gap-2 overflow-visible w-full md:w-auto">
-                    @if($folders->count() <= 4)
-                        {{-- Horizontal List Mode (Legacy) --}}
-                        <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                            <a href="{{ route('videos.index') }}"
-                                class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {{ !request('folder_id') ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700' }}">
-                                Semua Video
-                            </a>
-                            @foreach($folders as $folder)
-                                <div class="group relative flex items-center">
-                                    <a href="{{ route('videos.index', ['folder_id' => $folder->id]) }}"
-                                        class="px-4 py-2 pr-9 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {{ request('folder_id') == $folder->id ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700' }}">
-                                        {{ $folder->name }}
-                                    </a>
-                                    <button type="button"
-                                        class="folder-settings-btn absolute right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 {{ request('folder_id') == $folder->id ? 'text-indigo-200 hover:text-white' : '' }}"
-                                        data-folder-id="{{ $folder->id }}" data-folder-name="{{ $folder->name }}"
-                                        data-folder-slug="{{ $folder->slug }}" data-folder-public="{{ $folder->public_link }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
-                                            </path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        {{-- Dropdown Mode (Compact) --}}
-                        <div class="relative relative-dropdown-container">
-                            <button type="button" id="folder-dropdown-btn"
-                                class="flex items-center justify-between gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full md:w-64">
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                                    {{ $currentFolder ? $currentFolder->name : 'Semua Video' }}
-                                </span>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-
-                            <div id="folder-dropdown-menu"
-                                class="hidden absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
-                                <div class="max-h-60 overflow-y-auto custom-scrollbar">
-                                    <a href="{{ route('videos.index') }}"
-                                        class="block px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 {{ !request('folder_id') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : '' }}">
-                                        Semua Video
-                                    </a>
-                                    @foreach($folders as $folder)
-                                        <div
-                                            class="group flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 {{ request('folder_id') == $folder->id ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
-                                            <a href="{{ route('videos.index', ['folder_id' => $folder->id]) }}"
-                                                class="flex-1 text-sm font-medium text-gray-700 dark:text-gray-200 truncate {{ request('folder_id') == $folder->id ? 'text-indigo-600 dark:text-indigo-400' : '' }}">
-                                                {{ $folder->name }}
-                                            </a>
-                                            <button type="button"
-                                                class="folder-settings-btn p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                                                data-folder-id="{{ $folder->id }}" data-folder-name="{{ $folder->name }}"
-                                                data-folder-slug="{{ $folder->slug }}"
-                                                data-folder-public="{{ $folder->public_link }}">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
-                                                    </path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Create Folder Button --}}
-                    @php
-                        $folderCount = $folders->count();
-                        $folderLimit = auth()->user()->max_folders;
-                        $isFolderLimitReached = $folderCount >= $folderLimit;
-                    @endphp
-
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="create-folder-btn" @if($isFolderLimitReached) disabled
-                        title="Maksimal folder tercapai" @endif
-                            class="px-3 py-2 rounded-lg border-2 border-dashed {{ $isFolderLimitReached ? 'border-red-200 text-red-500 cursor-not-allowed bg-red-50 dark:bg-red-900/10 dark:border-red-900/30' : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-indigo-500 hover:text-indigo-500' }} text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Folder Baru
-                            @if($isFolderLimitReached) <span class="text-xs ml-1 font-bold">(Penuh)</span> @endif
-                        </button>
-                    </div>
-                </div>
-
-                @if(isset($currentFolder))
-                    <div class="flex items-center gap-2">
-                        <a href="{{ $currentFolder->public_link }}" target="_blank"
-                            class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                            Lihat Folder Publik
-                        </a>
-                    </div>
-                @endif
-            </div>
-
             <!-- Header Card -->
             <div
                 class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
@@ -142,7 +32,7 @@
                     class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {{-- Global Folder Usage --}}
                     @php
-                        $folderCount = $folders->count();
+                        $folderCount = $totalFolderCount;
                         $folderLimit = auth()->user()->max_folders;
                         $folderPercent = ($folderCount / $folderLimit) * 100;
                         $isFolderFull = $folderCount >= $folderLimit;
@@ -232,283 +122,580 @@
                 </div>
             </div>
 
-            <!-- Merged Panel: Control & Table -->
+            <!-- Breadcrumb & Navigation -->
+            <div class="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        <li class="inline-flex items-center">
+                            <a href="{{ route('videos.index') }}"
+                                class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-white transition-colors">
+                                <svg class="w-4 h-4 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+                                </svg>
+                                Home
+                            </a>
+                        </li>
+                        @if($currentFolder)
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m1 9 4-4-4-4" />
+                                    </svg>
+                                    <span
+                                        class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ $currentFolder->name }}</span>
+                                </div>
+                            </li>
+                        @endif
+                    </ol>
+                </nav>
+
+                <div class="flex gap-2">
+                    @if(isset($currentFolder))
+                        <button type="button"
+                            class="copy-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                            data-link="{{ $currentFolder->public_link }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Salin Link Folder
+                        </button>
+                    @endif
+
+                    @php
+                        $folderCount = $folders->count(); // In root view only, usually
+                        $folderLimit = auth()->user()->max_folders;
+                        $isFolderLimitReached = auth()->user()->folders()->count() >= $folderLimit;
+                    @endphp
+
+                    @if(!$currentFolder && !$filters['search'])
+                        <button type="button" id="create-folder-btn" @if($isFolderLimitReached) disabled
+                        title="Maksimal folder tercapai" @endif
+                            class="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 {{ $isFolderLimitReached ? 'opacity-50 cursor-not-allowed' : '' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z">
+                                </path>
+                            </svg>
+                            Folder Baru
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+
+            <!-- Toolbar: Search, Filter, Sort, View Toggle -->
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-all duration-200">
-
-                <!-- Header / Controls -->
-                <div class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800">
-                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <!-- Left Side: Thumb Toggle & Filters -->
-                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                            <!-- Select All -->
-                            <div
-                                class="flex items-center bg-white dark:bg-gray-700 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-600 shadow-sm">
-                                <input type="checkbox" id="select-all-checkbox"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-600 dark:border-gray-500 cursor-pointer">
-                                <label for="select-all-checkbox"
-                                    class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">Semua</label>
-                            </div>
-
-                            <!-- Thumbnail Toggle Switch -->
-                            <label
-                                class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-600 shadow-sm select-none">
-                                <input type="checkbox" id="toggle-thumbnails" class="sr-only peer">
-                                <div
-                                    class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600">
-                                </div>
-                                <span class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300">Thumbnail</span>
-                            </label>
-
-                            <!-- Filters -->
-                            <form action="{{ route('videos.index') }}" method="GET" class="flex items-center gap-2">
-                                <!-- Per Page Selector -->
-                                <select name="per_page"
-                                    class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                                    onchange="this.form.submit()">
-                                    <option value="10" @if(($filters['per_page'] ?? 10) == 10) selected @endif>10 per hal
-                                    </option>
-                                    <option value="20" @if(($filters['per_page'] ?? '') == 20) selected @endif>20 per hal
-                                    </option>
-                                    <option value="50" @if(($filters['per_page'] ?? '') == 50) selected @endif>50 per hal
-                                    </option>
-                                    <option value="100" @if(($filters['per_page'] ?? '') == 100) selected @endif>100 per
-                                        hal</option>
-                                    <option value="500" @if(($filters['per_page'] ?? '') == 500) selected @endif>500 per
-                                        hal</option>
-                                </select>
-
-                                <select name="sort_by"
-                                    class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                                    onchange="this.form.submit()">
-                                    <option value="created_at" @if(($filters['sort_by'] ?? '') == 'created_at') selected
-                                    @endif>Tanggal</option>
-                                    <option value="views_count" @if(($filters['sort_by'] ?? '') == 'views_count') selected
-                                    @endif>Views</option>
-                                </select>
-                                <select name="sort_dir"
-                                    class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                                    onchange="this.form.submit()">
-                                    <option value="desc" @if(($filters['sort_dir'] ?? '') == 'desc') selected @endif>
-                                        Terbaru</option>
-                                    <option value="asc" @if(($filters['sort_dir'] ?? '') == 'asc') selected @endif>Terlama
-                                    </option>
-                                </select>
-
-                                <input type="hidden" name="search" value="{{ $filters['search'] ?? '' }}">
-                            </form>
+                class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <!-- Left: Search & Select All -->
+                <div class="flex items-center gap-3 w-full md:w-auto flex-1">
+                    <div class="relative w-full max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
-
-                        <!-- Right Side: Search & Bulk Actions -->
-                        <div class="flex items-center w-full md:w-auto md:justify-end gap-2">
-                            <!-- Search -->
-                            <form id="search-container" action="{{ route('videos.index') }}" method="GET"
-                                class="relative flex-1 md:flex-none md:w-64">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input type="text" name="search"
-                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm"
-                                    placeholder="Cari video..." value="{{ $filters['search'] ?? '' }}">
-                            </form>
-
-                            <!-- Bulk Actions (Hidden by default) -->
-                            <div id="bulk-action-bar"
-                                class="hidden flex items-center gap-2 animate-fade-in pl-2 md:pl-4 md:border-l border-gray-200 dark:border-gray-700">
-                                <span id="selected-count"
-                                    class="hidden md:inline-block text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">0</span>
-                                <button id="bulk-copy-btn"
-                                    class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-gray-200 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
-                                    title="Salin Link">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3">
-                                        </path>
-                                    </svg>
-                                </button>
-                                <button id="bulk-move-btn"
-                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 dark:border-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                    title="Pindahkan ke Folder">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z">
-                                        </path>
-                                    </svg>
-                                </button>
-                                <button id="bulk-delete-btn"
-                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/30"
-                                    title="Hapus">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                        <form action="{{ route('videos.index') }}" method="GET" class="w-full">
+                            @if(request('folder_id')) <input type="hidden" name="folder_id"
+                            value="{{ request('folder_id') }}"> @endif
+                            @if(request('per_page')) <input type="hidden" name="per_page"
+                            value="{{ request('per_page') }}"> @endif
+                            <input type="text" name="search" value="{{ $filters['search'] }}"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Cari video...">
+                        </form>
                     </div>
                 </div>
 
-                <!-- Table Content -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-[800px] md:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <!-- Right: Filters, Sort, View Toggle -->
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                    <!-- Sort Dropdown -->
+                    <form id="sort-form" action="{{ route('videos.index') }}" method="GET"
+                        class="flex flex-wrap items-center gap-2 w-full md:w-auto flex-1 md:flex-none">
+                        @if(request('folder_id')) <input type="hidden" name="folder_id"
+                        value="{{ request('folder_id') }}"> @endif
+                        @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+
+                        <select name="sort_by" onchange="document.getElementById('sort-form').submit()"
+                            class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-2 pl-3 pr-8 flex-1 w-full sm:w-auto">
+                            <option value="created_at" {{ $filters['sort_by'] == 'created_at' ? 'selected' : '' }}>Tanggal
+                            </option>
+                            <option value="views_count" {{ $filters['sort_by'] == 'views_count' ? 'selected' : '' }}>Views
+                            </option>
+                            <option value="title" {{ $filters['sort_by'] == 'title' ? 'selected' : '' }}>Nama</option>
+                        </select>
+                        <select name="sort_dir" onchange="document.getElementById('sort-form').submit()"
+                            class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-2 pl-3 pr-8 flex-1 w-full sm:w-auto">
+                            <option value="desc" {{ $filters['sort_dir'] == 'desc' ? 'selected' : '' }}>Baru</option>
+                            <option value="asc" {{ $filters['sort_dir'] == 'asc' ? 'selected' : '' }}>Lama</option>
+                        </select>
+                        <select name="per_page" onchange="document.getElementById('sort-form').submit()"
+                            class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-2 pl-3 pr-8 flex-1 w-full sm:w-auto">
+                            @foreach([10, 20, 30, 40, 50] as $size)
+                                <option value="{{ $size }}" {{ $filters['per_page'] == $size ? 'selected' : '' }}>{{ $size }}
+                                    / Halaman</option>
+                            @endforeach
+                        </select>
+                    </form>
+
+                    <!-- View Toggle -->
+                    <div
+                        class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600 ml-auto md:ml-0">
+                        <button type="button" id="view-grid-btn"
+                            class="p-2 rounded-md transition-colors text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-white active-view">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                                </path>
+                            </svg>
+                        </button>
+                        <button type="button" id="view-list-btn"
+                            class="p-2 rounded-md transition-colors text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UNIFIED CONTENT CONTAINER -->
+            <div id="unified-content-wrapper">
+
+                <!-- GRID VIEW -->
+                <div id="grid-view-container"
+                    class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+                    <!-- Folders (Grid) -->
+                    @if(!$currentFolder && !$filters['search'])
+                        @foreach($folders as $folder)
+                            <a href="{{ route('videos.index', ['folder_id' => $folder->id]) }}"
+                                class="group relative flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer h-full">
+                                <div class="mb-3 text-yellow-400 group-hover:scale-110 transition-transform duration-200">
+                                    <svg class="w-16 h-16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200 text-center truncate w-full mb-1 group-hover:text-indigo-600">
+                                    {{ $folder->name }}
+                                </h3>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $folder->videos_count }} items</span>
+
+                                <button type="button"
+                                    class="folder-settings-btn absolute top-2 right-2 p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                                    data-folder-id="{{ $folder->id }}" data-folder-name="{{ $folder->name }}"
+                                    data-folder-slug="{{ $folder->slug }}" data-folder-public="{{ $folder->public_link }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </a>
+                        @endforeach
+                    @endif
+
+                    <!-- Videos (Grid) -->
+                    @foreach($videos as $video)
+                        <div
+                            class="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all flex flex-col h-full z-0 hover:z-30">
+                            <!-- Thumbnail -->
+                            <div class="aspect-video relative bg-gray-100 dark:bg-gray-900 rounded-t-xl overflow-hidden cursor-pointer view-thumbnail-btn"
+                                data-image-url="{{ $video->thumbnail_path ? Storage::url($video->thumbnail_path) : asset('images/default-thumbnail.jpg') }}"
+                                data-video-title="{{ $video->title }}">
+                                <img src="{{ $video->thumbnail_path ? Storage::url($video->thumbnail_path) : asset('images/default-thumbnail.jpg') }}"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <span
+                                    class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                                    {{ $video->duration ?? '00:00' }}
+                                </span>
+                                <!-- Selection Checkbox Overlay -->
+                                <div class="absolute top-2 left-2 z-10">
+                                    <input type="checkbox" name="video_ids[]" value="{{ $video->id }}"
+                                        data-link="{{ $video->generated_link }}"
+                                        class="video-checkbox w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 checked:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div class="p-3 flex flex-col flex-1">
+                                <h3 class="text-sm font-medium text-gray-800 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-indigo-600 transition-colors"
+                                    title="{{ $video->title }}">
+                                    {{ $video->title }}
+                                </h3>
+                                <div
+                                    class="mt-auto flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                    <span>{{ $video->views_count }} views</span>
+                                    <span>{{ $video->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Actions Dropdown (Alpine.js) -->
+                            <div class="absolute top-2 right-2 z-20" x-data="{ open: false }">
+                                <button @click="open = !open" @click.away="open = false" type="button"
+                                    class="p-1.5 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
+                                        </path>
+                                    </svg>
+                                </button>
+
+                                <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95"
+                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 py-1 focus:outline-none overflow-hidden"
+                                    style="display: none;">
+
+                                    <!-- Copy -->
+                                    <button type="button"
+                                        class="copy-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                        data-link="{{ $video->generated_link }}">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        Salin Link
+                                    </button>
+
+                                    <!-- Move -->
+                                    <button type="button"
+                                        class="move-video-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                        data-video-id="{{ $video->id }}">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        Pindahkan
+                                    </button>
+
+                                    <!-- Edit -->
+                                    <button type="button"
+                                        class="edit-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                        data-video-id="{{ $video->id }}" data-video-title="{{ $video->title }}">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                            </path>
+                                        </svg>
+                                        Edit Judul
+                                    </button>
+
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+                                    <!-- Delete -->
+                                    <form action="{{ route('videos.destroy', $video->id) }}" method="POST"
+                                        class="delete-form w-full">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- LIST VIEW -->
+                <div id="list-view-container"
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden overflow-x-auto md:overflow-visible hidden">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <th scope="col" class="p-4 w-10"><input type="checkbox" id="select-all-checkbox-table"
-                                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
+                                <th scope="col" class="pl-6 pr-2 py-3 text-left w-10">
+                                    <input type="checkbox" id="select-all-main"
+                                        class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                 </th>
-                                <!-- Thumbnail Column Header (Toggleable) -->
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider thumbnail-col hidden">
-                                    Thumbnail</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Judul Video</th>
+                                    class="pl-2 pr-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Nama</th>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    ID Video</th>
+                                    Status</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Views</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Dibuat</th>
-                                <th scope="col"
                                     class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Tindakan</th>
+                                    Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse ($videos as $video)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150 group">
-                                    <td class="p-4"><input type="checkbox"
-                                            class="link-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                                            value="{{ $video->id }}" data-link="{{ $video->generated_link }}"></td>
-
-                                    <!-- Thumbnail Column (Toggleable) -->
-                                    <td class="px-6 py-4 whitespace-nowrap thumbnail-col hidden">
-                                        @if($video->thumbnail_url)
-                                            <div class="relative w-24 h-14 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden cursor-pointer view-thumbnail-btn group/thumb"
-                                                data-image-url="{{ $video->thumbnail_url }}"
-                                                data-video-title="{{ $video->title }}">
-                                                <img src="{{ $video->thumbnail_url }}" alt="Thumb" loading="lazy"
-                                                    class="w-full h-full object-cover">
+                            <!-- Folders (List) -->
+                            @if(!$currentFolder && !$filters['search'])
+                                @foreach($folders as $folder)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group cursor-pointer"
+                                        onclick="if(!event.target.closest('.no-propagate')) window.location='{{ route('videos.index', ['folder_id' => $folder->id]) }}'">
+                                        <td class="pl-6 pr-2 py-4 whitespace-nowrap text-center">
+                                            <!-- Disabled Checkbox for Folder -->
+                                            <svg class="w-5 h-5 text-gray-300 dark:text-gray-600 mx-auto" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M20 12H4"></path>
+                                            </svg>
+                                        </td>
+                                        <td class="pl-2 pr-6 py-4">
+                                            <div class="flex items-center">
                                                 <div
-                                                    class="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/20 transition-colors flex items-center justify-center">
-                                                    <svg class="w-6 h-6 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity drop-shadow-md"
-                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                                    class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/20 rounded text-yellow-500">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
                                                     </svg>
                                                 </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {{ $folder->name }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ $folder->videos_count }} item
+                                                    </div>
+                                                </div>
                                             </div>
-                                        @else
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 border border-transparent">
-                                                No Image
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                                Folder
                                             </span>
-                                        @endif
-                                    </td>
-
-                                    <!-- Judul (2 Lines) -->
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 max-w-[250px]"
-                                                title="{{ $video->title }}">{{ $video->title }}</div>
-                                        </div>
-                                    </td>
-
-                                    <!-- ID / Link -->
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <button type="button"
-                                            class="copy-btn group flex items-center space-x-2 text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
-                                            data-link="{{ $video->generated_link }}" title="Klik untuk menyalin link">
-                                            <span
-                                                class="font-mono bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded text-xs group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800">
-                                                {{ $video->video_code }}
-                                            </span>
-                                            <svg class="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </td>
-
-                                    <!-- Info Lain -->
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {{ number_format($video->views_count) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $video->created_at->format('d M Y') }}
-                                    </td>
-
-                                    <!-- Actions -->
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex items-center justify-end space-x-2">
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                                            -
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-propagate">
                                             <button type="button"
-                                                class="edit-btn p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                                data-video-id="{{ $video->id }}" data-video-title="{{ $video->title }}"
-                                                title="Edit">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                class="folder-settings-btn text-gray-400 hover:text-indigo-600 transition-colors p-2"
+                                                data-folder-id="{{ $folder->id }}" data-folder-name="{{ $folder->name }}"
+                                                data-folder-slug="{{ $folder->slug }}"
+                                                data-folder-public="{{ $folder->public_link }}">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
                                                     </path>
                                                 </svg>
                                             </button>
-                                            <form method="POST" action="{{ route('videos.destroy', $video) }}"
-                                                class="delete-form inline-block">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="delete-btn p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-900/30"
-                                                    title="Hapus">
-                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endif
+
+                            <!-- Videos (List) -->
+                            @foreach($videos as $video)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <td class="pl-6 pr-2 py-4 whitespace-nowrap w-10">
+                                        <input type="checkbox" name="video_ids[]" value="{{ $video->id }}"
+                                            data-link="{{ $video->generated_link }}"
+                                            class="video-checkbox w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    </td>
+                                    <td class="pl-2 pr-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-16 bg-gray-100 dark:bg-gray-900 rounded overflow-hidden relative cursor-pointer view-thumbnail-btn"
+                                                data-image-url="{{ $video->thumbnail_path ? Storage::url($video->thumbnail_path) : asset('images/default-thumbnail.jpg') }}"
+                                                data-video-title="{{ $video->title }}">
+                                                <img class="h-10 w-16 object-cover"
+                                                    src="{{ $video->thumbnail_path ? Storage::url($video->thumbnail_path) : asset('images/default-thumbnail.jpg') }}">
+                                            </div>
+                                            <div class="ml-4 max-w-xs">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                                                    title="{{ $video->title }}">
+                                                    {{ $video->title }}
+                                                </div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $video->created_at->format('d M Y') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($video->is_active)
+                                            <span
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Active</span>
+                                        @else
+                                            <span
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Inactive</span>
+                                        @endif
+                                        @if(!$video->is_safe_content)
+                                            <span class="ml-1 text-xs text-red-500" title="18+">🔞</span>
+                                        @endif
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                                        {{ number_format($video->views_count ?? 0) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                                        <div class="inline-block text-left" x-data="{ open: false }">
+                                            <button @click="open = !open" @click.away="open = false" type="button"
+                                                class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
+                                                    </path>
+                                                </svg>
+                                            </button>
+
+                                            <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                                x-transition:enter-start="transform opacity-0 scale-95"
+                                                x-transition:enter-end="transform opacity-100 scale-100"
+                                                x-transition:leave="transition ease-in duration-75"
+                                                x-transition:leave-start="transform opacity-100 scale-100"
+                                                x-transition:leave-end="transform opacity-0 scale-95"
+                                                class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 py-1 focus:outline-none z-50 text-left"
+                                                style="display: none;">
+
+                                                <!-- Copy -->
+                                                <button type="button"
+                                                    class="copy-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                    data-link="{{ $video->generated_link }}">
+                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
                                                         </path>
                                                     </svg>
+                                                    Salin Link
                                                 </button>
-                                            </form>
+
+                                                <!-- Move -->
+                                                <button type="button"
+                                                    class="move-video-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                    data-video-id="{{ $video->id }}">
+                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z">
+                                                        </path>
+                                                    </svg>
+                                                    Pindahkan
+                                                </button>
+
+                                                <!-- Edit -->
+                                                <button type="button"
+                                                    class="edit-btn w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                    data-video-id="{{ $video->id }}" data-video-title="{{ $video->title }}">
+                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                                        </path>
+                                                    </svg>
+                                                    Edit Judul
+                                                </button>
+
+                                                <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+                                                <!-- Delete -->
+                                                <form action="{{ route('videos.destroy', $video->id) }}" method="POST"
+                                                    class="delete-form w-full">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                            </path>
+                                                        </svg>
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <svg class="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
-                                                </path>
-                                            </svg>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Belum ada video
-                                            </h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Mulai dengan membuat
-                                                link baru.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-
             <!-- Pagination -->
             <div class="mt-6">
                 {{ $videos->appends(request()->query())->links() }}
             </div>
         </div>
     </main>
+
+    <!-- Floating Bulk Action Bar -->
+    <div id="bulk-action-bar"
+        class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 w-11/12 max-w-3xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+
+        <div class="flex items-center gap-4">
+            <button type="button" id="cancel-selection-btn"
+                class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+            <div class="flex flex-col">
+                <span class="text-sm font-bold text-gray-900 dark:text-white"><span id="selected-count">0</span> Item
+                    Dipilih</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">Pilih aksi untuk item terpilih</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="button" id="bulk-copy-btn"
+                class="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3">
+                    </path>
+                </svg>
+                <span class="hidden sm:inline">Copy Link</span>
+            </button>
+
+            <button type="button" id="bulk-move-btn"
+                class="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl text-sm font-semibold hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                <span class="hidden sm:inline">Pindah</span>
+            </button>
+
+            <button type="button" id="bulk-delete-btn"
+                class="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+                <span class="hidden sm:inline">Hapus</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Hidden Forms & Modals -->
     <!-- Form tersembunyi untuk Bulk Action -->
@@ -520,7 +707,7 @@
 
     <!-- Modal Konfirmasi Hapus -->
     <div id="delete-confirm-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-300">
         <div
             class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
             <div class="p-6 text-center">
@@ -547,7 +734,7 @@
 
     <!-- Modal Thumbnail -->
     <div id="thumbnail-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-300">
+        class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-300">
         <div
             class="relative bg-black rounded-xl overflow-hidden shadow-2xl max-w-3xl w-full max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center p-4 bg-black/50 absolute top-0 left-0 right-0 z-10">
@@ -568,8 +755,7 @@
     </div>
 
     <!-- Modal Edit Title (Reused & Styled) -->
-    <div id="edit-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md transform transition-all scale-100"
             id="edit-modal-content">
             <div class="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
@@ -618,7 +804,7 @@
 
     <!-- Modal Create Folder -->
     <div id="create-folder-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
             <div class="p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Buat Folder Baru</h3>
@@ -644,7 +830,7 @@
 
     <!-- Modal Manage Folder (Rename/Delete) -->
     <div id="manage-folder-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
             <div class="p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pengaturan Folder</h3>
@@ -679,7 +865,7 @@
                     <form id="delete-folder-form" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
+                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus folder ini?')"
                             class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/50">Hapus</button>
                     </form>
                 </div>
@@ -694,7 +880,7 @@
 
     <!-- Modal Move to Folder -->
     <div id="move-folder-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm transform transition-all scale-100">
             <div class="p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pindahkan ke Folder</h3>
@@ -702,7 +888,7 @@
                 </p>
 
                 <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                    @foreach($folders as $folder)
+                    @foreach($allFolders as $folder)
                         @php
                             $isFull = $folder->videos()->count() >= auth()->user()->max_videos_per_folder;
                         @endphp
@@ -792,13 +978,71 @@
                 document.body.removeChild(textarea);
             };
 
-            // === Bulk Actions UI ===
-            const allCheckboxes = document.querySelectorAll('.link-checkbox');
-            const selectAllCheckboxes = document.querySelectorAll('#select-all-checkbox, #select-all-checkbox-table');
+            // === VIEW TOGGLE LOGIC ===
+            const viewGridBtn = document.getElementById('view-grid-btn');
+            const viewListBtn = document.getElementById('view-list-btn');
+            const gridContainer = document.getElementById('grid-view-container');
+            const listContainer = document.getElementById('list-view-container');
+
+            const setView = (view) => {
+                if (!gridContainer || !listContainer) return;
+
+                const activeClasses = ['text-indigo-600', 'bg-white', 'shadow-sm', 'dark:bg-gray-600', 'dark:text-white', 'active-view'];
+                const inactiveClasses = ['text-gray-500', 'hover:text-indigo-600', 'dark:text-gray-400', 'dark:hover:text-white'];
+
+                if (view === 'list') {
+                    gridContainer.classList.add('hidden');
+                    listContainer.classList.remove('hidden');
+
+                    if (viewListBtn) {
+                        viewListBtn.classList.remove(...inactiveClasses);
+                        viewListBtn.classList.add(...activeClasses);
+                    }
+                    if (viewGridBtn) {
+                        viewGridBtn.classList.remove(...activeClasses);
+                        viewGridBtn.classList.add(...inactiveClasses);
+                    }
+
+                    localStorage.setItem('videoViewMode', 'list');
+                } else {
+                    listContainer.classList.add('hidden');
+                    gridContainer.classList.remove('hidden');
+
+                    if (viewGridBtn) {
+                        viewGridBtn.classList.remove(...inactiveClasses);
+                        viewGridBtn.classList.add(...activeClasses);
+                    }
+                    if (viewListBtn) {
+                        viewListBtn.classList.remove(...activeClasses);
+                        viewListBtn.classList.add(...inactiveClasses);
+                    }
+
+                    localStorage.setItem('videoViewMode', 'grid');
+                }
+            };
+
+            // Init View
+            const savedView = localStorage.getItem('videoViewMode') || 'grid';
+            setView(savedView);
+
+            viewGridBtn?.addEventListener('click', () => setView('grid'));
+            viewListBtn?.addEventListener('click', () => setView('list'));
+
+
+            // === BULK ACTIONS & SELECTION ===
+            // Note: We have checkboxes in BOTH Grid and List.
+            // When checking one, we should ideally check the other if they represent the same ID, 
+            // BUT simpler is just treating them as independent inputs that feed the same 'Set'.
+            // Because they are in different containers (one hidden), user only interacts with visible ones.
+
             const bulkActionBar = document.getElementById('bulk-action-bar');
             const searchContainer = document.getElementById('search-container');
             const selectedCountSpan = document.getElementById('selected-count');
             const selectedVideos = new Set();
+
+            // Re-query checkboxes every time (incase of DOM updates, though here it's static)
+            // We use event delegation or just dynamic query.
+            const getVideoCheckboxes = () => document.querySelectorAll('.video-checkbox');
 
             const updateBulkUI = () => {
                 const count = selectedVideos.size;
@@ -806,53 +1050,75 @@
 
                 if (count > 0) {
                     bulkActionBar.classList.remove('hidden');
-                    searchContainer.classList.add('hidden', 'md:hidden'); // Hide on mobile too if active
                 } else {
                     bulkActionBar.classList.add('hidden');
-                    searchContainer.classList.remove('hidden', 'md:hidden');
                 }
 
-                const allChecked = count === allCheckboxes.length && count > 0;
-                selectAllCheckboxes.forEach(cb => cb.checked = allChecked);
+                // Sync UI state of checkboxes (if switching views)
+                document.querySelectorAll('.video-checkbox').forEach(cb => {
+                    cb.checked = selectedVideos.has(cb.value);
+                });
             };
 
-            allCheckboxes.forEach(cb => {
-                cb.addEventListener('change', (e) => {
-                    e.target.checked ? selectedVideos.add(e.target.value) : selectedVideos.delete(e.target.value);
+            // Event Listener for Checkboxes (Delegation)
+            document.body.addEventListener('change', (e) => {
+                if (e.target.classList.contains('video-checkbox')) {
+                    const id = e.target.value;
+                    if (e.target.checked) {
+                        selectedVideos.add(id);
+                    } else {
+                        selectedVideos.delete(id);
+                    }
                     updateBulkUI();
-                });
-            });
+                }
 
-            selectAllCheckboxes.forEach(master => {
-                master.addEventListener('change', (e) => {
-                    const checked = e.target.checked;
-                    allCheckboxes.forEach(cb => {
-                        cb.checked = checked;
-                        checked ? selectedVideos.add(cb.value) : selectedVideos.delete(cb.value);
+                // Select All Logic
+                if (e.target.id === 'select-all-checkbox' || e.target.id === 'select-all-main') {
+                    const isChecked = e.target.checked;
+                    // Sync select all boxes
+                    const selectAllTop = document.getElementById('select-all-checkbox');
+                    const selectAllMain = document.getElementById('select-all-main');
+
+                    if (selectAllTop) selectAllTop.checked = isChecked;
+                    if (selectAllMain) selectAllMain.checked = isChecked;
+
+                    // Update all visible checkboxes
+                    const visibleContainer = listContainer.classList.contains('hidden') ? gridContainer : listContainer;
+                    const checkboxes = visibleContainer.querySelectorAll('.video-checkbox');
+
+                    checkboxes.forEach(cb => {
+                        cb.checked = isChecked;
+                        if (isChecked) selectedVideos.add(cb.value);
+                        else selectedVideos.delete(cb.value);
                     });
                     updateBulkUI();
-                });
+                }
             });
+
 
             // === Thumbnail Toggle Logic ===
             const thumbToggle = document.getElementById('toggle-thumbnails');
-            const thumbCols = document.querySelectorAll('.thumbnail-col');
 
-            // Load saved state
-            const savedThumbState = localStorage.getItem('showThumbnails');
-            if (savedThumbState === 'true') {
-                thumbToggle.checked = true;
-                thumbCols.forEach(el => el.classList.remove('hidden'));
-            }
+            if (thumbToggle) {
+                // Load saved state
+                const savedThumbState = localStorage.getItem('showThumbnails');
+                if (savedThumbState === 'true') {
+                    thumbToggle.checked = true;
+                    document.querySelectorAll('.thumbnail-col').forEach(el => el.classList.remove('hidden'));
+                }
 
-            thumbToggle.addEventListener('change', (e) => {
-                const isChecked = e.target.checked;
-                localStorage.setItem('showThumbnails', isChecked);
-                thumbCols.forEach(el => {
-                    if (isChecked) el.classList.remove('hidden');
-                    else el.classList.add('hidden');
+                thumbToggle.addEventListener('change', (e) => {
+                    const isChecked = e.target.checked;
+                    localStorage.setItem('showThumbnails', isChecked);
+
+                    // Toggle list view thumbnails
+                    const thumbCols = document.querySelectorAll('.thumbnail-col');
+                    thumbCols.forEach(el => {
+                        if (isChecked) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
                 });
-            });
+            }
 
             // === Actions (Copy, Delete) ===
             document.body.addEventListener('click', (e) => {
@@ -864,24 +1130,49 @@
 
             // Bulk Copy
             document.getElementById('bulk-copy-btn')?.addEventListener('click', () => {
-                const links = Array.from(allCheckboxes)
-                    .filter(cb => selectedVideos.has(cb.value))
-                    .map(cb => cb.dataset.link);
+                const links = [];
+                selectedVideos.forEach(id => {
+                    // Get link directly from the checkbox data attribute
+                    const checkbox = document.querySelector(`.video-checkbox[value="${id}"]`);
+                    if (checkbox && checkbox.dataset.link) {
+                        links.push(checkbox.dataset.link);
+                    }
+                });
 
-                if (links.length) {
-                    copyToClipboard(links.join('\n'), `${links.length} link disalin`);
+                if (links.length > 0) {
+                    copyToClipboard(links.join('\n'), `${links.length} link disalin ke clipboard`);
+                    // Optional: Clear selection after copy?
+                    // clearSelection(); 
+                } else {
+                    showToast('Gagal mendapatkan link', 'error');
                 }
             });
+
+            // Cancel Selection
+            const clearSelection = () => {
+                selectedVideos.clear();
+                document.querySelectorAll('.video-checkbox').forEach(cb => cb.checked = false);
+                const selectAllTop = document.getElementById('select-all-checkbox');
+                const selectAllMain = document.getElementById('select-all-main');
+                if (selectAllTop) selectAllTop.checked = false;
+                if (selectAllMain) selectAllMain.checked = false;
+                updateBulkUI();
+            };
+
+            document.getElementById('cancel-selection-btn')?.addEventListener('click', clearSelection);
+
+
 
             // === Modals Management ===
             const toggleModal = (modalId, show = true) => {
                 const modal = document.getElementById(modalId);
                 if (!modal) return;
-
                 if (show) {
                     modal.classList.remove('hidden');
+                    modal.classList.add('flex');
                 } else {
                     modal.classList.add('hidden');
+                    modal.classList.remove('flex');
                 }
             };
 
@@ -914,16 +1205,17 @@
                 toggleModal('delete-confirm-modal', true);
             };
 
-            document.querySelectorAll('.delete-form').forEach(form => {
-                form.addEventListener('submit', (e) => {
+            document.body.addEventListener('submit', (e) => {
+                if (e.target.classList.contains('delete-form')) {
                     e.preventDefault();
-                    showDeleteConfirm(form, 'Yakin ingin menghapus link ini?');
-                });
-            });
+                    showDeleteConfirm(e.target, 'Yakin ingin menghapus link ini?');
+                }
 
+
+            });
             document.getElementById('bulk-delete-btn')?.addEventListener('click', () => {
                 if (!selectedVideos.size) return;
-                const form = document.getElementById('bulk-action-form');
+                const form = document.querySelector('form#bulk-action-form'); // Use specific ID
                 form.querySelector('#bulk-action-input').value = 'delete';
 
                 // Clear old inputs
@@ -954,6 +1246,10 @@
                 if (btn) {
                     currentEditId = btn.dataset.videoId;
                     editTitleInput.value = btn.dataset.videoTitle;
+
+                    // Update char count
+                    document.getElementById('char-count').textContent = `${editTitleInput.value.length}/255`;
+
                     toggleModal('edit-modal', true);
                 }
             });
@@ -966,9 +1262,13 @@
                 if (!currentEditId) return;
 
                 const btn = document.getElementById('save-edit-btn');
-                const originalText = btn.innerHTML;
+                const btnText = document.getElementById('save-text');
+                const btnIcon = document.getElementById('save-icon');
+
                 btn.disabled = true;
-                btn.innerHTML = 'Saving...';
+                btnText.textContent = 'Menyimpan...';
+                btnIcon.classList.remove('hidden');
+                btnIcon.classList.add('animate-spin');
 
                 try {
                     const res = await fetch(`/videos/${currentEditId}`, {
@@ -983,14 +1283,16 @@
 
                     if (res.ok) {
                         showToast('Judul berhasil diupdate');
-                        setTimeout(() => window.location.reload(), 1000);
+                        setTimeout(() => window.location.reload(), 500);
                     } else {
                         throw new Error('Gagal update');
                     }
                 } catch (err) {
                     showToast(err.message || 'Error', 'error');
                     btn.disabled = false;
-                    btn.innerHTML = originalText;
+                    btnText.textContent = 'Simpan';
+                    btnIcon.classList.add('hidden');
+                    btnIcon.classList.remove('animate-spin');
                 }
             });
 
@@ -1000,7 +1302,6 @@
             });
 
             // === FOLDER LOGIC (Event Delegation) ===
-
             document.body.addEventListener('click', (e) => {
                 // Create Folder Button
                 const createBtn = e.target.closest('#create-folder-btn');
@@ -1009,7 +1310,7 @@
                     return;
                 }
 
-                // Close Buttons (Delegated for consistency, though ID listeners work too)
+                // Close Buttons
                 if (e.target.closest('#cancel-create-folder')) {
                     toggleModal('create-folder-modal', false);
                     return;
@@ -1039,6 +1340,7 @@
                 const bulkMoveBtn = e.target.closest('#bulk-move-btn');
                 if (bulkMoveBtn) {
                     if (selectedVideos.size === 0) return;
+                    document.querySelector('form#bulk-action-form').dataset.mode = 'bulk';
                     toggleModal('move-folder-modal', true);
                     return;
                 }
@@ -1047,24 +1349,54 @@
                 const selectFolderBtn = e.target.closest('.select-folder-btn');
                 if (selectFolderBtn) {
                     const folderId = selectFolderBtn.dataset.folderId;
-                    const form = document.getElementById('bulk-action-form');
 
+                    // We need to submit the BULK ACTION form, but aimed at 'move' action
+                    const form = document.querySelector('form#bulk-action-form');
                     form.querySelector('#bulk-action-input').value = 'move';
                     form.querySelector('#bulk-folder-id-input').value = folderId;
+
+                    // Check mode to decide whether to rebuild inputs
+                    // If mode is 'single', we assume form is already populated correctly
+                    if (form.dataset.mode !== 'single') {
+                        // Clear old inputs
+                        form.querySelectorAll('input[name="video_ids[]"]').forEach(el => el.remove());
+
+                        // Add new inputs from checkboxes
+                        selectedVideos.forEach(id => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'video_ids[]';
+                            input.value = id;
+                            form.appendChild(input);
+                        });
+                    }
+
+                    form.submit();
+                    return;
+                }
+
+                // Single Move Video Button
+                const moveVideoBtn = e.target.closest('.move-video-btn');
+                if (moveVideoBtn) {
+                    const videoId = moveVideoBtn.dataset.videoId;
+
+                    // Reuse the bulk action form to move a single item
+                    const form = document.querySelector('form#bulk-action-form');
+                    form.dataset.mode = 'single';
+                    form.querySelector('#bulk-action-input').value = 'move';
+                    form.querySelector('#bulk-folder-id-input').value = ''; // Will be set by modal selection
 
                     // Clear old inputs
                     form.querySelectorAll('input[name="video_ids[]"]').forEach(el => el.remove());
 
-                    // Add new inputs
-                    selectedVideos.forEach(id => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'video_ids[]';
-                        input.value = id;
-                        form.appendChild(input);
-                    });
+                    // Add new input for single video
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'video_ids[]';
+                    input.value = videoId;
+                    form.appendChild(input);
 
-                    form.submit();
+                    toggleModal('move-folder-modal', true);
                     return;
                 }
 
@@ -1072,10 +1404,9 @@
                 if (e.target.id === 'create-folder-modal') toggleModal('create-folder-modal', false);
                 if (e.target.id === 'manage-folder-modal') toggleModal('manage-folder-modal', false);
                 if (e.target.id === 'move-folder-modal') toggleModal('move-folder-modal', false);
+                if (e.target.id === 'edit-modal') toggleModal('edit-modal', false);
             });
 
-            // Close buttons specific IDs (Keep existing or rely on delegation? Delegation covers logic but explicit IDs are fine)
-            // Close buttons specific IDs (Keep existing or rely on delegation? Delegation covers logic but explicit IDs are fine)
             document.getElementById('close-manage-folder')?.addEventListener('click', () => toggleModal('manage-folder-modal', false));
             document.getElementById('cancel-move-folder')?.addEventListener('click', () => toggleModal('move-folder-modal', false));
 
@@ -1087,22 +1418,7 @@
                 showToast("{{ session('error') }}", 'error');
             @endif
 
-            // === Folder Dropdown Logic ===
-            const dropdownBtn = document.getElementById('folder-dropdown-btn');
-            const dropdownMenu = document.getElementById('folder-dropdown-menu');
 
-            if (dropdownBtn && dropdownMenu) {
-                dropdownBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdownMenu.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdownMenu.contains(e.target) && !dropdownBtn.contains(e.target)) {
-                        dropdownMenu.classList.add('hidden');
-                    }
-                });
-            }
         });
     </script>
 </x-app-layout>
