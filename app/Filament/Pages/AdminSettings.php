@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
@@ -39,6 +40,9 @@ class AdminSettings extends Page implements HasForms
 
         // Ambil data baru
         $this->data['watch_time_seconds'] = Setting::where('key', 'watch_time_seconds')->first()->value ?? 10;
+
+        $feeConfig = Setting::where('key', 'withdrawal_fee_config')->first()->value ?? '[]';
+        $this->data['withdrawal_fee_config'] = json_decode($feeConfig, true);
     }
 
     public function form(Form $form): Form
@@ -73,6 +77,38 @@ class AdminSettings extends Page implements HasForms
                     ->label('Metode Penarikan yang Tersedia')->required(),
                 TagsInput::make('withdrawal_amounts')
                     ->label('Pilihan Nominal Penarikan (IDR)')->required(),
+
+                Repeater::make('withdrawal_fee_config')
+                    ->label('Konfigurasi Biaya Admin')
+                    ->schema([
+                        Select::make('method')
+                            ->label('Metode Penarikan')
+                            ->options(function () {
+                                // Ambil opsi dari field withdrawal_methods
+                                $methods = $this->data['withdrawal_methods'] ?? [];
+                                if (is_string($methods)) {
+                                    $methods = explode(',', $methods);
+                                }
+                                return array_combine($methods, $methods);
+                            })
+                            ->required(),
+                        Select::make('amount')
+                            ->label('Nominal')
+                            ->options(function () {
+                                // Ambil opsi dari field withdrawal_amounts
+                                $amounts = $this->data['withdrawal_amounts'] ?? [];
+                                if (is_string($amounts)) {
+                                    $amounts = explode(',', $amounts);
+                                }
+                                return array_combine($amounts, $amounts);
+                            })
+                            ->required(),
+                        TextInput::make('fee')
+                            ->label('Biaya Admin (IDR)')
+                            ->numeric()
+                            ->required(),
+                    ])
+                    ->columns(3),
             ])
             ->statePath('data');
     }
@@ -95,6 +131,7 @@ class AdminSettings extends Page implements HasForms
 
         // Simpan data baru
         Setting::updateOrCreate(['key' => 'watch_time_seconds'], ['value' => $data['watch_time_seconds']]);
+        Setting::updateOrCreate(['key' => 'withdrawal_fee_config'], ['value' => json_encode($data['withdrawal_fee_config'])]);
         // Notifikasi sukses
         Notification::make()->title('Pengaturan berhasil disimpan')->success()->send();
     }

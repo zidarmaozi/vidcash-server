@@ -105,7 +105,7 @@
                                         required @if($hasPendingWithdrawal) disabled @endif>
                                         <option value="">-- Pilih Akun Penerima --</option>
                                         @foreach(Auth::user()->paymentAccounts as $account)
-                                            <option value="{{ $account->id }}">{{ $account->method_name }} -
+                                            <option value="{{ $account->id }}" data-method="{{ $account->method_name }}">{{ $account->method_name }} -
                                                 {{ $account->account_number }} ({{ $account->account_name }})</option>
                                         @endforeach
                                     </select>
@@ -137,6 +137,23 @@
                                         </button>
                                     @endforeach
                                 </div>
+                            </div>
+                            
+                            <!-- Fee Display Section -->
+                            <div id="fee-receipt" class="mb-8 hidden bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-dashed border-gray-200 dark:border-gray-600">
+                                <div class="flex justify-between items-center text-sm mb-2">
+                                    <span class="text-gray-500 dark:text-gray-400">Nominal Penarikan</span>
+                                    <span class="font-medium text-gray-900 dark:text-white" id="r-amount">Rp0</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm mb-3">
+                                    <span class="text-gray-500 dark:text-gray-400">Biaya Admin</span>
+                                    <span class="font-bold text-red-500" id="r-fee">Rp0</span>
+                                </div>
+                                <div class="border-t border-gray-200 dark:border-gray-600 pt-3 flex justify-between items-center">
+                                    <span class="font-bold text-gray-900 dark:text-white">Total Dipotong</span>
+                                    <span class="font-extrabold text-indigo-600 dark:text-indigo-400 text-lg" id="r-total">Rp0</span>
+                                </div>
+                                <p id="balance-warning" class="text-xs text-red-500 mt-2 hidden">Saldo Anda tidak mencukupi untuk biaya admin.</p>
                             </div>
 
                             <button type="submit"
@@ -243,6 +260,11 @@
                                                 Rp{{ number_format($withdrawal->amount, 0, ',', '.') }}</p>
                                             <p class="text-[10px] text-gray-400 font-mono">{{ $withdrawal->formatted_id }}
                                             </p>
+                                            @if($withdrawal->status == 'rejected' && $withdrawal->rejection_reason)
+                                                <p class="text-[10px] text-red-500 mt-0.5 font-medium bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded-md inline-block">
+                                                    Alasan: {{ $withdrawal->rejection_reason }}
+                                                </p>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="text-right">
@@ -252,8 +274,12 @@
                                                 @else bg-red-100 text-red-700 @endif">
                                             {{ ucfirst($withdrawal->status) }}
                                         </span>
-                                        <p class="text-[10px] text-gray-400">
-                                            {{ $withdrawal->created_at->format('d M, H:i') }}</p>
+                                        <div class="text-[10px] text-gray-400">
+                                            {{ $withdrawal->created_at->format('d M, H:i') }}
+                                            @if($withdrawal->admin_fee > 0)
+                                            <span class="block text-red-400 text-[9px]">-Fee Rp{{ number_format($withdrawal->admin_fee, 0, ',', '.') }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @empty
@@ -394,12 +420,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // === Data Configuration ===
+            const feeConfig = {!! $feeConfig !!};
+            const userBalance = {{ Auth::user()->balance }};
+
             // === Elemen UI ===
             const amountButtons = document.querySelectorAll('.amount-btn');
             const hiddenAmountInput = document.getElementById('amount');
+            const accountSelect = document.getElementById('payment_account_id');
             const addAccountModal = document.getElementById('addAccountModal');
             const addAccountBtn = document.getElementById('addAccountBtn');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            const submitBtn = document.querySelector('button[type="submit"]');
+
+            const feeReceipt = document.getElementById('fee-receipt');
+            const rAmount = document.getElementById('r-amount');
+            const rFee = document.getElementById('r-fee');
+            const rTotal = document.getElementById('r-total');
+            const balanceWarning = document.getElementById('balance-warning');
 
             const deleteAccountModal = document.getElementById('delete-account-modal');
             const cancelDeleteAccountBtn = document.getElementById('cancel-delete-account-btn');
@@ -410,6 +448,63 @@
             const successModalText = document.getElementById('success-modal-text');
             const closeSuccessModalBtn = document.getElementById('close-success-modal-btn');
 
+            // --- Fungsi Hitung Fee ---
+            function calculateFee() {
+                const amount = parseFloat(hiddenAmountInput.value);
+                const accountOption = accountSelect.options[accountSelect.selectedIndex];
+                const method = accountOption ? accountOption.getAttribute('data-method') : null;
+
+                if (!amount || !method) {
+                    feeReceipt.classList.add('hidden');
+                    // Re-enable submit button if no amount/method selected, unless it's disabled by hasPendingWithdrawal
+                    if (!submitBtn.dataset.initialDisabled) { // Check if it was initially disabled by PHP
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.textContent = 'Kirim Permintaan Penarikan';
+                    }
+                    balanceWarning.classList.add('hidden');
+                    return;
+                }
+
+                // Tampilkan receipt container
+                feeReceipt.classList.remove('hidden');
+
+                // Cari fee di config
+                let adminFee = 0;
+                if (method && feeConfig.length > 0) {
+                    const config = feeConfig.find(item => item.method === method && parseFloat(item.amount) === amount);
+                    if (config) {
+                        adminFee = parseFloat(config.fee);
+                    }
+                }
+
+                const totalDeduction = amount + adminFee;
+
+                // Update UI Text
+                rAmount.textContent = 'Rp' + new Intl.NumberFormat('id-ID').format(amount);
+                rFee.textContent = 'Rp' + new Intl.NumberFormat('id-ID').format(adminFee);
+                rTotal.textContent = 'Rp' + new Intl.NumberFormat('id-ID').format(totalDeduction);
+
+                // Cek Saldo dan Nonaktifkan Tombol jika kurang
+                if (totalDeduction > userBalance) {
+                    balanceWarning.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    submitBtn.textContent = 'Saldo Tidak Mencukupi';
+                } else {
+                    balanceWarning.classList.add('hidden');
+                    // Only re-enable if not initially disabled by hasPendingWithdrawal
+                    if (!submitBtn.dataset.initialDisabled) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.textContent = 'Kirim Permintaan Penarikan';
+                    }
+                }
+            }
+
+            // Store initial disabled state of submit button
+            submitBtn.dataset.initialDisabled = submitBtn.disabled;
+
             // --- Logika Modal Tambah Akun ---
             if (addAccountBtn) {
                 addAccountBtn.addEventListener('click', () => addAccountModal.classList.remove('hidden'));
@@ -418,6 +513,9 @@
                     if (e.target === addAccountModal) addAccountModal.classList.add('hidden');
                 });
             }
+
+            // --- Listeners untuk Kalkulasi Fee ---
+            accountSelect.addEventListener('change', calculateFee);
 
             // --- Logika Pilihan Nominal ---
             amountButtons.forEach(button => {
@@ -436,8 +534,23 @@
                     this.classList.add('border-indigo-600', 'ring-2', 'ring-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/30', 'text-indigo-700', 'dark:text-indigo-300');
                     
                     hiddenAmountInput.value = this.dataset.amount;
+                    calculateFee(); // Hitung ulang fee saat nominal berubah
                 });
             });
+
+            // Initial calculation on page load if an amount is already selected (e.g., from old input)
+            if (hiddenAmountInput.value && accountSelect.value) {
+                // Simulate click on the corresponding amount button to set active state and calculate fee
+                const preselectedAmount = hiddenAmountInput.value;
+                const preselectedButton = document.querySelector(`.amount-btn[data-amount="${preselectedAmount}"]`);
+                if (preselectedButton) {
+                    preselectedButton.click();
+                } else {
+                    calculateFee(); // If no button matches, just calculate based on hidden input and select
+                }
+            } else {
+                calculateFee(); // Call once to hide fee receipt if nothing is selected
+            }
 
             // --- Logika Modal Hapus ---
             // PERBAIKAN: Gunakan class 'delete-account-form' yang lebih spesifik

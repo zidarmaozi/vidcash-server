@@ -34,8 +34,8 @@ class WithdrawalResource extends Resource
             ->columns([
                 // TAMBAHKAN KOLOM INI
                 Tables\Columns\TextColumn::make('formatted_id')
-                ->label('ID Penarikan')
-                ->searchable(isIndividual: true), // Bisa dicari
+                    ->label('ID Penarikan')
+                    ->searchable(isIndividual: true), // Bisa dicari
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pengguna')
@@ -48,7 +48,7 @@ class WithdrawalResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'pending' => 'warning',
                         'confirmed' => 'success',
                         'rejected' => 'danger',
@@ -69,7 +69,7 @@ class WithdrawalResource extends Resource
                     ->requiresConfirmation()
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
-                    ->visible(fn (Withdrawal $record): bool => $record->status === 'pending')
+                    ->visible(fn(Withdrawal $record): bool => $record->status === 'pending')
                     ->action(function (Withdrawal $record) {
                         $user = $record->user;
 
@@ -81,7 +81,7 @@ class WithdrawalResource extends Resource
 
                         // 1. Potong saldo user
                         $user->balance -= $record->amount;
-                        
+
                         // 2. Tambahkan ke total penarikan
                         $user->total_withdrawn += $record->amount;
                         $user->save();
@@ -106,21 +106,28 @@ class WithdrawalResource extends Resource
                     ->requiresConfirmation()
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
-                    ->visible(fn (Withdrawal $record): bool => $record->status === 'pending')
-                    ->action(function (Withdrawal $record) {
+                    ->visible(fn(Withdrawal $record): bool => $record->status === 'pending')
+                    ->form([
+                        Forms\Components\Textarea::make('rejection_reason')
+                            ->label('Alasan Penolakan')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->action(function (Withdrawal $record, array $data) {
                         // Tidak perlu kembalikan saldo karena saldo belum dipotong saat request
-                        
-                        // Ubah status
+            
+                        // Ubah status dan simpan alasan
                         $record->status = 'rejected';
+                        $record->rejection_reason = $data['rejection_reason'];
                         $record->save();
-                        
+
                         // Buat notifikasi untuk user
                         $user = $record->user;
                         $user->customNotifications()->create([
                             'type' => 'withdrawal',
-                            'message' => 'Permintaan penarikan Anda sebesar Rp' . number_format($record->amount) . ' ditolak.'
+                            'message' => 'Permintaan penarikan Anda sebesar Rp' . number_format($record->amount) . ' ditolak. Alasan: ' . $data['rejection_reason']
                         ]);
-                        
+
                         Notification::make()->title('Penarikan ditolak.')->success()->send();
                     }),
             ])
@@ -130,14 +137,14 @@ class WithdrawalResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -146,5 +153,5 @@ class WithdrawalResource extends Resource
             // 'create' => Pages\CreateWithdrawal::route('/create'),
             // 'edit' => Pages\EditWithdrawal::route('/{record}/edit'),
         ];
-    }    
+    }
 }

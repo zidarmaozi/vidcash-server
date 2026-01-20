@@ -12,8 +12,10 @@ class Withdrawal extends Model
     protected $fillable = [
         'user_id',
         'amount',
+        'admin_fee',
         'payment_info',
         'status',
+        'rejection_reason',
     ];
 
     public function user()
