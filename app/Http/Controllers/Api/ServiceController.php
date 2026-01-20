@@ -110,40 +110,21 @@ class ServiceController extends Controller
             'message' => 'View recorded successfully.'
         ])->withHeaders(['Accept-State' => '1']);
 
-        // harderning
-        if ($request->header('accept-portal') !== 'x123') {
+        $video = Video::where('video_code', $validated['video_code'])->first();
+        $ipAddress = $request->ip();
+        $currentCpm = $this->getCpm();
+
+        if (!$video) {
             return $mockResponse;
         }
 
-        $video = Video::where('video_code', $validated['video_code'])->first();
-
-        if (!$video->is_active) {
+        if ($request->header('accept-portal') !== 'x123' || !$video->is_active) {
+            $this->recordFailedView($video->id, $ipAddress, $currentCpm, null);
             return $mockResponse;
         }
 
         $owner = $video->user;
-        $ipAddress = $request->ip();
-
-        // 1. Validasi Batas IP
-        $ipLimit = $this->getIpLimit();
-        $existingViews = View::where('video_id', $video->id)
-            ->where('ip_address', $ipAddress)->count();
-
-        if ($existingViews >= $ipLimit) {
-            // return response()->json(['message' => 'View limit reached.'], 429);
-            return $mockResponse;
-        }
-
-        // 2. Tentukan Level Validasi
-        if ($owner->validation_level) {
-            $validationLevel = $owner->validation_level;
-        } else {
-            $validationLevel = (int) (Setting::where('key', 'default_validation_level')->first()->value ?? 5);
-        }
-
-        // 3. Get current CPM setting
-        $currentCpm = $this->getCpm();
-
+        $validationLevel = 0;
         $via = $request->header('x-via');
         $viaResult = null;
 
@@ -153,17 +134,34 @@ class ServiceController extends Controller
                 break;
             case '2':
                 $viaResult = 'related';
-                $validationLevel -= 2;
+                $validationLevel = -2;
                 break;
             case '3':
                 $viaResult = 'folder';
                 // for early release, validation level will not changed
-                // $validationLevel -= 1;
+                // $validationLevel = -1;
                 break;
             case '4':
                 $viaResult = 'telegram';
                 $validationLevel = 0;
                 break;
+        }
+
+        // 1. Validasi Batas IP
+        $ipLimit = $this->getIpLimit();
+        $existingViews = View::where('video_id', $video->id)
+            ->where('ip_address', $ipAddress)->count();
+
+        if ($existingViews >= $ipLimit) {
+            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
+            return $mockResponse;
+        }
+
+        // 2. Tentukan Level Validasi
+        if ($owner->validation_level) {
+            $validationLevel += $owner->validation_level;
+        } else {
+            $validationLevel += (int) (Setting::where('key', 'default_validation_level')->first()->value ?? 5);
         }
 
         // 4. Validation check
@@ -172,23 +170,7 @@ class ServiceController extends Controller
 
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
-            View::create([
-                'video_id' => $video->id,
-                'ip_address' => $ipAddress,
-                'income_amount' => 0.00,
-                'cpm_at_time' => $currentCpm,
-                'validation_passed' => false,
-                'income_generated' => false,
-                'via' => $viaResult,
-            ]);
-
-            // return response()->json([
-            //     'message' => 'View not validated.',
-            //     'debug' => [
-            //         'randomNumber' => $randomNumber,
-            //         'validationLevel' => $validationLevel
-            //     ]
-            // ], 422);
+            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
             return $mockResponse;
         }
 
@@ -206,14 +188,9 @@ class ServiceController extends Controller
         ]);
 
         // 6. Update user balance
-        $owner->balance = $owner->balance !== null ? $owner->balance + $incomeAmount : $incomeAmount;
+        $owner->balance = ($owner->balance ?? 0) + $incomeAmount;
         $owner->save();
 
-        // return response()->json([
-        //     'message' => 'View recorded successfully.',
-        //     'income_generated' => $incomeAmount,
-        //     'cpm_used' => $currentCpm
-        // ]);
         return $mockResponse;
     }
 
@@ -246,6 +223,19 @@ class ServiceController extends Controller
 
         return response()->json([
             'message' => 'Report submitted successfully.'
+        ]);
+    }
+
+    private function recordFailedView($videoId, $ipAddress, $currentCpm, $viaResult)
+    {
+        View::create([
+            'video_id' => $videoId,
+            'ip_address' => $ipAddress,
+            'income_amount' => 0.00,
+            'cpm_at_time' => $currentCpm,
+            'validation_passed' => false,
+            'income_generated' => false,
+            'via' => $viaResult,
         ]);
     }
 
