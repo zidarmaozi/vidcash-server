@@ -32,14 +32,14 @@ class ViewerSourceChart extends ChartWidget
                         'backgroundColor' => [
                             'rgb(59, 130, 246)',   // Blue - Telegram
                             'rgb(34, 197, 94)',    // Green - Direct
-                            'rgb(251, 146, 60)',   // Orange - Related
+                            'rgb(128, 0, 128)',   // Purple - Related
                             'rgb(251, 146, 60)',   // Orange - Folder
                             'rgb(156, 163, 175)',  // Gray - Unknown
                         ],
                         'borderColor' => [
                             'rgb(59, 130, 246)',
                             'rgb(34, 197, 94)',
-                            'rgb(251, 146, 60)',
+                            'rgb(128, 0, 128)',
                             'rgb(251, 146, 60)',
                             'rgb(156, 163, 175)',
                         ],
