@@ -5,24 +5,40 @@ namespace App\Filament\Widgets;
 use App\Models\View;
 use Filament\Widgets\ChartWidget;
 
-class ViewerSourceChart extends ChartWidget
+class FilteredViewerSourceChart extends ChartWidget
 {
-    protected static ?string $heading = '📊 Sumber Viewer (Viewer Source Distribution)';
+    protected static ?string $heading = '📊 Sumber Viewer (Filtered)';
 
     protected static ?int $sort = 6;
 
     protected static bool $isLazy = true;
 
+    public ?array $dateRange = null;
+
+    public function mount(?array $dateRange = null): void
+    {
+        $this->dateRange = $dateRange ?? ['start' => null, 'end' => null];
+    }
+
     protected function getData(): array
     {
-        // Cache for 10 minutes
-        return cache()->remember('viewer_source_chart_data', 600, function () {
-            // Get counts for each source
-            $telegramCount = View::where('via', 'telegram')->count();
-            $directCount = View::where('via', 'direct')->count();
-            $relatedCount = View::where('via', 'related')->count();
-            $folderCount = View::where('via', 'folder')->count();
-            $unknownCount = View::whereNull('via')->count();
+        $query = $this->dateRange;
+        $cacheKey = 'filtered_viewer_source_chart_' . md5(serialize($query));
+
+        // Cache for 5 minutes
+        return cache()->remember($cacheKey, 300, function () use ($query) {
+            // Helper to apply date filter
+            $applyFilter = function ($q) use ($query) {
+                return $q->when($query['start'] ?? null, fn($sq) => $sq->where('created_at', '>=', $query['start']))
+                    ->when($query['end'] ?? null, fn($sq) => $sq->where('created_at', '<=', $query['end']));
+            };
+
+            // Get counts for each source with date filter
+            $telegramCount = $applyFilter(View::where('via', 'telegram'))->count();
+            $directCount = $applyFilter(View::where('via', 'direct'))->count();
+            $relatedCount = $applyFilter(View::where('via', 'related'))->count();
+            $folderCount = $applyFilter(View::where('via', 'folder'))->count();
+            $unknownCount = $applyFilter(View::whereNull('via'))->count();
 
             return [
                 'datasets' => [
@@ -59,7 +75,7 @@ class ViewerSourceChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'doughnut'; // Circle/Donut chart
+        return 'doughnut';
     }
 
     protected function getOptions(): array
@@ -79,4 +95,3 @@ class ViewerSourceChart extends ChartWidget
         ];
     }
 }
-
