@@ -54,7 +54,7 @@ class UserResource extends Resource
                 // TAMBAHKAN FIELD INI
                 Select::make('validation_level')
                     ->label('Level Validasi Khusus')
-                    ->options(array_combine(range(1, 10), range(1, 10)))
+                    ->options(array_combine(range(0, 10), range(0, 10)))
                     ->helperText('Kosongkan untuk menggunakan pengaturan default dari admin.'),
 
                 Forms\Components\Section::make('Batasan Pengguna')
