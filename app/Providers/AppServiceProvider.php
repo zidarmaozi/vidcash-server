@@ -5,6 +5,11 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Livewire;
+use App\Filament\Widgets\FilteredDashboardStats;
+use App\Filament\Widgets\FilteredFinancialOverview;
+use App\Filament\Widgets\FilteredMonthlyStatsChart;
+use App\Filament\Widgets\PendingWithdrawals;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,5 +38,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Observers
         \App\Models\User::observe(\App\Observers\UserObserver::class);
+
+        // Register Livewire Components for Filtered Dashboard
+        Livewire::component('app.filament.widgets.filtered-dashboard-stats', FilteredDashboardStats::class);
+        Livewire::component('app.filament.widgets.filtered-financial-overview', FilteredFinancialOverview::class);
+        Livewire::component('app.filament.widgets.filtered-monthly-stats-chart', FilteredMonthlyStatsChart::class);
+        Livewire::component('app.filament.widgets.pending-withdrawals', PendingWithdrawals::class);
     }
 }
