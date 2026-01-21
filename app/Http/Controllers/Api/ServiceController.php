@@ -157,6 +157,17 @@ class ServiceController extends Controller
             return $mockResponse;
         }
 
+        // get last 20 views of the video to check if the user is spamming
+        // on range now() - 6 minutes, if it is more than 20, then block the user
+        $lastViews = View::where('video_id', $video->id)
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->count();
+
+        if ($lastViews >= 20) {
+            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
+            return $mockResponse;
+        }
+
         // 2. Tentukan Level Validasi
         if ($owner->validation_level) {
             $validationLevel += $owner->validation_level;
