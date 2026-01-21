@@ -44,5 +44,10 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('app.filament.widgets.filtered-financial-overview', FilteredFinancialOverview::class);
         Livewire::component('app.filament.widgets.filtered-monthly-stats-chart', FilteredMonthlyStatsChart::class);
         Livewire::component('app.filament.widgets.pending-withdrawals', PendingWithdrawals::class);
+
+        // New Widgets
+        Livewire::component('app.filament.widgets.filtered-viewer-source-chart', \App\Filament\Widgets\FilteredViewerSourceChart::class);
+        Livewire::component('app.filament.widgets.top-referrers-widget', \App\Filament\Widgets\TopReferrersWidget::class);
+        Livewire::component('app.filament.widgets.top-performing-videos-widget', \App\Filament\Widgets\TopPerformingVideosWidget::class);
     }
 }

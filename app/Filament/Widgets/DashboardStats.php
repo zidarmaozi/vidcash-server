@@ -71,6 +71,11 @@ class DashboardStats extends BaseWidget
                     ->icon('heroicon-o-video-camera')
                     ->color('info'),
 
+                Stat::make('✈️ Telegram Broadcasts', \App\Models\TelegramBroadcastVideo::count())
+                    ->description('Video published to Telegram')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('info'),
+
                 Stat::make('👁️ Total Views', number_format($totalViews))
                     ->description('All time views')
                     ->icon('heroicon-o-eye')

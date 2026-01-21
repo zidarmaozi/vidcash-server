@@ -21,7 +21,7 @@ class FilteredDashboard extends Page implements HasForms
     protected static string $view = 'filament.pages.filtered-dashboard';
     protected static ?string $title = 'Dashboard dengan Filter';
     protected static ?string $navigationLabel = 'Dashboard Filter';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = -1;
 
     public array $data = [
         'date_range' => 'all',
@@ -54,11 +54,14 @@ class FilteredDashboard extends Page implements HasForms
             FilteredDashboardStats::class,
             FilteredFinancialOverview::class,
             FilteredMonthlyStatsChart::class,
+            \App\Filament\Widgets\FilteredViewerSourceChart::class,
+            \App\Filament\Widgets\TopReferrersWidget::class,
+            \App\Filament\Widgets\TopPerformingVideosWidget::class,
             PendingWithdrawals::class,
         ];
     }
 
-    public function getColumns(): int | string | array
+    public function getColumns(): int|string|array
     {
         return 2;
     }
