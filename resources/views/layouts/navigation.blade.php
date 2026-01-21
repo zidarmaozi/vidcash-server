@@ -35,6 +35,16 @@
 
             <!-- Right Side (Desktop) -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Chat Icon (Desktop) -->
+                <a href="{{ route('chat.index') }}"
+                    class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150 me-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </a>
+
                 <!-- Tombol Notifikasi (Desktop) -->
                 <div class="relative me-4" x-data="{ open: false }">
                     <button id="notification-bell" @click="open = ! open; markNotificationsAsRead()"
@@ -52,10 +62,13 @@
                     <!-- Dropdown Notifikasi -->
                     <div x-show="open" @click.away="open = false" style="display: none;"
                         class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-50">
-                        <div class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">Notifikasi</div>
+                        <div
+                            class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">
+                            Notifikasi</div>
                         @if(isset($userNotifications))
                             @forelse($userNotifications as $notification)
-                                <div class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
+                                <div
+                                    class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
                                     <p class="text-sm text-gray-700 dark:text-gray-300">{!! $notification->message !!}</p>
                                     <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                                 </div>
@@ -91,6 +104,16 @@
 
             <!-- Right Side (Mobile) -->
             <div class="-me-2 flex items-center sm:hidden">
+                <!-- Chat Icon (Mobile) -->
+                <a href="{{ route('chat.index') }}"
+                    class="p-2 mr-2 rounded-full text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none transition duration-150 ease-in-out">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </a>
+
                 <!-- Tombol Notifikasi (Mobile) -->
                 <div class="relative" x-data="{ open: false }">
                     <button id="notification-bell" @click="open = ! open; markNotificationsAsRead()"
@@ -106,12 +129,15 @@
                         @endif
                     </button>
                     <!-- Dropdown Notifikasi Mobile -->
-                     <div x-show="open" @click.away="open = false" style="display: none;"
+                    <div x-show="open" @click.away="open = false" style="display: none;"
                         class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-50">
-                        <div class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">Notifikasi</div>
+                        <div
+                            class="p-3 font-bold border-b border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200">
+                            Notifikasi</div>
                         @if(isset($userNotifications))
                             @forelse($userNotifications as $notification)
-                                <div class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
+                                <div
+                                    class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition @if(!$notification->read_at) bg-indigo-50 dark:bg-indigo-900/20 @endif">
                                     <p class="text-sm text-gray-700 dark:text-gray-300">{!! $notification->message !!}</p>
                                     <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                                 </div>

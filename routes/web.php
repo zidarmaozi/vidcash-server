@@ -56,6 +56,9 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     // Rute Referral/Undang Teman
     Route::get('/referral', [\App\Http\Controllers\ReferralController::class, 'index'])->name('referral.index');
 
+    // Chat Route
+    Route::get('/chat', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+
 });
 
 
