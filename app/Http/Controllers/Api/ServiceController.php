@@ -10,6 +10,7 @@ use App\Models\VideoReport;
 use App\Models\Folder;
 use Cache;
 use App\Services\CacheKeyService;
+use DB;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -124,7 +125,7 @@ class ServiceController extends Controller
         }
 
         $owner = $video->user;
-        $validationLevel = 0;
+        $validationLevelAdjuster = 0;
         $via = $request->header('x-via');
         $viaResult = null;
 
@@ -134,7 +135,7 @@ class ServiceController extends Controller
                 break;
             case '2':
                 $viaResult = 'related';
-                $validationLevel = -2;
+                $validationLevelAdjuster = -2;
                 break;
             case '3':
                 $viaResult = 'folder';
@@ -143,7 +144,7 @@ class ServiceController extends Controller
                 break;
             case '4':
                 $viaResult = 'telegram';
-                $validationLevel = 0;
+                $validationLevelAdjuster = 0;
                 break;
         }
 
@@ -168,39 +169,49 @@ class ServiceController extends Controller
             return $mockResponse;
         }
 
+        $originalValidationLevel = 0;
         // 2. Tentukan Level Validasi
         if ($owner->validation_level) {
-            $validationLevel += $owner->validation_level;
+            $originalValidationLevel = $owner->validation_level;
         } else {
-            $validationLevel += (int) (Setting::where('key', 'default_validation_level')->first()->value ?? 5);
+            $originalValidationLevel = (int) (Setting::where('key', 'default_validation_level')->first()->value ?? 5);
         }
 
+        $adjustedValidationLevel = $validationLevelAdjuster + $originalValidationLevel;
+
         // 4. Validation check
-        $randomNumber = rand(1, 10);
-        $validationPassed = $randomNumber <= $validationLevel;
+        $viewerValidationLevel = rand(1, 10);
+        $validationPassed = $viewerValidationLevel <= $adjustedValidationLevel;
 
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
-            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
+            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult, $originalValidationLevel, $viewerValidationLevel, $adjustedValidationLevel);
             return $mockResponse;
         }
 
         // 5. View passed validation - record with income information
         $incomeAmount = $currentCpm; // 1 view = CPM amount
 
-        View::create([
-            'video_id' => $video->id,
-            'ip_address' => $ipAddress,
-            'income_amount' => $incomeAmount,
-            'cpm_at_time' => $currentCpm,
-            'validation_passed' => true,
-            'income_generated' => true,
-            'via' => $viaResult,
-        ]);
+        DB::transaction(
+            function () use ($owner, $video, $ipAddress, $incomeAmount, $currentCpm, $viaResult, $originalValidationLevel, $viewerValidationLevel, $adjustedValidationLevel) {
+                View::create([
+                    'video_id' => $video->id,
+                    'ip_address' => $ipAddress,
+                    'income_amount' => $incomeAmount,
+                    'cpm_at_time' => $currentCpm,
+                    'validation_passed' => true,
+                    'income_generated' => true,
+                    'via' => $viaResult,
+                    'vl_at_time' => $originalValidationLevel,
+                    'adjusted_vl' => $adjustedValidationLevel,
+                    'viewer_vl' => $viewerValidationLevel,
+                ]);
 
-        // 6. Update user balance
-        $owner->balance = ($owner->balance ?? 0) + $incomeAmount;
-        $owner->save();
+                // 6. Update user balance
+                $owner->balance = ($owner->balance ?? 0) + $incomeAmount;
+                $owner->save();
+            }
+        );
 
         return $mockResponse;
     }
@@ -237,8 +248,15 @@ class ServiceController extends Controller
         ]);
     }
 
-    private function recordFailedView($videoId, $ipAddress, $currentCpm, $viaResult)
-    {
+    private function recordFailedView(
+        $videoId,
+        $ipAddress,
+        $currentCpm,
+        $viaResult,
+        $validationAtTime = null,
+        $adjustedValidationLevel = null,
+        $viewerValidationLevel = null
+    ) {
         View::create([
             'video_id' => $videoId,
             'ip_address' => $ipAddress,
@@ -247,6 +265,9 @@ class ServiceController extends Controller
             'validation_passed' => false,
             'income_generated' => false,
             'via' => $viaResult,
+            'vl_at_time' => $validationAtTime,
+            'adjusted_vl' => $adjustedValidationLevel,
+            'viewer_vl' => $viewerValidationLevel,
         ]);
     }
 

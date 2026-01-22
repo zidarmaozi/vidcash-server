@@ -14,6 +14,9 @@ class View extends Model
         'validation_passed',
         'income_generated',
         'via',
+        'vl_at_time',
+        'adjusted_vl',
+        'viewer_vl',
     ];
 
     protected $casts = [
@@ -21,9 +24,12 @@ class View extends Model
         'cpm_at_time' => 'decimal:2',
         'validation_passed' => 'boolean',
         'income_generated' => 'boolean',
+        'vl_at_time' => 'integer',
+        'adjusted_vl' => 'integer',
+        'viewer_vl' => 'integer',
     ];
 
-    use HasFactory; 
+    use HasFactory;
 
     public function user()
     {
