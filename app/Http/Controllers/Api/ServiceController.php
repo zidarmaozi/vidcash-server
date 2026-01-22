@@ -120,7 +120,15 @@ class ServiceController extends Controller
         }
 
         if ($request->header('accept-portal') !== 'x123' || !$video->is_active) {
-            $this->recordFailedView($video->id, $ipAddress, $currentCpm, null);
+            $this->recordFailedView(
+                $video->id,
+                $ipAddress,
+                $currentCpm,
+                null,
+                -100,
+                -100,
+                -100
+            );
             return $mockResponse;
         }
 
@@ -154,7 +162,15 @@ class ServiceController extends Controller
             ->where('ip_address', $ipAddress)->count();
 
         if ($existingViews >= $ipLimit) {
-            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
+            $this->recordFailedView(
+                $video->id,
+                $ipAddress,
+                $currentCpm,
+                $viaResult,
+                -192,
+                -192,
+                -192
+            );
             return $mockResponse;
         }
 
@@ -165,7 +181,15 @@ class ServiceController extends Controller
             ->count();
 
         if ($lastViews >= 8) {
-            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
+            $this->recordFailedView(
+                $video->id,
+                $ipAddress,
+                $currentCpm,
+                $viaResult,
+                -99,
+                -99,
+                -99
+            );
             return $mockResponse;
         }
 
@@ -185,7 +209,15 @@ class ServiceController extends Controller
 
         if (!$validationPassed) {
             // View failed validation - still record it but mark as failed
-            $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult, $originalValidationLevel, $viewerValidationLevel, $adjustedValidationLevel);
+            $this->recordFailedView(
+                $video->id,
+                $ipAddress,
+                $currentCpm,
+                $viaResult,
+                $originalValidationLevel,
+                $viewerValidationLevel,
+                $adjustedValidationLevel
+            );
             return $mockResponse;
         }
 
