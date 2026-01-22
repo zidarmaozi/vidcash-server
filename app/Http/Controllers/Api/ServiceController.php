@@ -160,10 +160,10 @@ class ServiceController extends Controller
         // get last 20 views of the video to check if the user is spamming
         // on range now() - 6 minutes, if it is more than 20, then block the user
         $lastViews = View::where('video_id', $video->id)
-            ->where('created_at', '>=', now()->subMinutes(5))
+            ->where('created_at', '>=', now()->subMinutes(3))
             ->count();
 
-        if ($lastViews >= 20) {
+        if ($lastViews >= 8) {
             $this->recordFailedView($video->id, $ipAddress, $currentCpm, $viaResult);
             return $mockResponse;
         }
