@@ -50,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\FilteredDashboard::class,
                 \App\Filament\Pages\UserProfile::class,
                 \App\Filament\Pages\VideoGallery::class,
+                \App\Filament\Pages\TopUserIncome::class,
             ])
             ->widgets([
                 QuickActions::class,
