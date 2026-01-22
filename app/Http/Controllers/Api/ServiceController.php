@@ -180,7 +180,7 @@ class ServiceController extends Controller
             ->where('created_at', '>=', now()->subMinutes(3))
             ->count();
 
-        if ($lastViews >= 8) {
+        if ($lastViews >= 3) {
             $this->recordFailedView(
                 $video->id,
                 $ipAddress,
@@ -190,6 +190,7 @@ class ServiceController extends Controller
                 -99,
                 -99
             );
+
             return $mockResponse;
         }
 
@@ -215,8 +216,8 @@ class ServiceController extends Controller
                 $currentCpm,
                 $viaResult,
                 $originalValidationLevel,
-                $viewerValidationLevel,
-                $adjustedValidationLevel
+                $adjustedValidationLevel,
+                $viewerValidationLevel
             );
             return $mockResponse;
         }
