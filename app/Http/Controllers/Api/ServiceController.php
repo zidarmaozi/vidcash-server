@@ -154,6 +154,18 @@ class ServiceController extends Controller
                 $viaResult = 'telegram';
                 $validationLevelAdjuster = 0;
                 break;
+            default:
+                // block view
+                $this->recordFailedView(
+                    $video->id,
+                    $ipAddress,
+                    $currentCpm,
+                    $viaResult,
+                    -101,
+                    -101,
+                    -101
+                );
+                return $mockResponse;
         }
 
         // 1. Validasi Batas IP
