@@ -80,14 +80,14 @@ class Video extends Model
     {
         try {
             // First try MP4 format
-            $mp4Url = "https://cdn.videy.co/{$this->video_code}.mp4";
+            $mp4Url = "https://cdn2.videy.co/{$this->video_code}.mp4";
             $mp4Response = \Illuminate\Support\Facades\Http::timeout(5)->head($mp4Url);
             if ($mp4Response->successful()) {
                 return true;
             }
 
             // If MP4 not found, try MOV format
-            $movUrl = "https://cdn.videy.co/{$this->video_code}.mov";
+            $movUrl = "https://cdn2.videy.co/{$this->video_code}.mov";
             $movResponse = \Illuminate\Support\Facades\Http::timeout(5)->head($movUrl);
             if ($movResponse->successful()) {
                 return true;
@@ -111,8 +111,8 @@ class Video extends Model
     public function getCdnUrls(): array
     {
         return [
-            'mp4' => "https://cdn.videy.co/{$this->video_code}.mp4",
-            'mov' => "https://cdn.videy.co/{$this->video_code}.mov",
+            'mp4' => "https://cdn2.videy.co/{$this->video_code}.mp4",
+            'mov' => "https://cdn2.videy.co/{$this->video_code}.mov",
         ];
     }
 

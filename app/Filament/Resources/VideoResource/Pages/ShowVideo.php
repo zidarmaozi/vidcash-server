@@ -125,7 +125,7 @@ class ShowVideo extends ViewRecord
                         TextEntry::make('video_player')
                             ->label('')
                             ->getStateUsing(function ($record) {
-                                $videoUrl = 'https://cdn.videy.co/' . $record->video_code . '.mp4';
+                                $videoUrl = 'https://cdn2.videy.co/' . $record->video_code . '.mp4';
                                 return view('components.video-player', ['videoUrl' => $videoUrl])->render();
                             })
                             ->html()
@@ -136,7 +136,7 @@ class ShowVideo extends ViewRecord
                                 TextEntry::make('video_url')
                                     ->label('CDN URL')
                                     ->getStateUsing(function ($record) {
-                                        return 'https://cdn.videy.co/' . $record->video_code . '.mp4';
+                                        return 'https://cdn2.videy.co/' . $record->video_code . '.mp4';
                                     })
                                     ->copyable()
                                     ->copyMessage('Video URL copied!')
@@ -317,8 +317,8 @@ class ShowVideo extends ViewRecord
                                 TextEntry::make('cdn_urls')
                                     ->label('CDN URLs')
                                     ->getStateUsing(function ($record) {
-                                        $mp4Url = "https://cdn.videy.co/{$record->video_code}.mp4";
-                                        $movUrl = "https://cdn.videy.co/{$record->video_code}.mov";
+                                        $mp4Url = "https://cdn2.videy.co/{$record->video_code}.mp4";
+                                        $movUrl = "https://cdn2.videy.co/{$record->video_code}.mov";
                                         
                                         return "**MP4:** {$mp4Url}\n\n**MOV:** {$movUrl}";
                                     })

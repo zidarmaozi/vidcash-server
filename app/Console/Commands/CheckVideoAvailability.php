@@ -95,13 +95,13 @@ class CheckVideoAvailability extends Command
     private function isVideoAvailable(string $videoCode): bool
     {
         // First try MP4 format
-        $mp4Url = "https://cdn.videy.co/{$videoCode}.mp4";
+        $mp4Url = "https://cdn2.videy.co/{$videoCode}.mp4";
         if ($this->checkUrlExists($mp4Url)) {
             return true;
         }
         
         // If MP4 not found, try MOV format
-        $movUrl = "https://cdn.videy.co/{$videoCode}.mov";
+        $movUrl = "https://cdn2.videy.co/{$videoCode}.mov";
         if ($this->checkUrlExists($movUrl)) {
             return true;
         }
